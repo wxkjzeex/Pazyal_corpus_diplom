@@ -22,12 +22,12 @@
     <!-- Навигация -->
     <nav class="main-nav">
         <div class="container">
-            <ul class="nav-menu">
-                <li><a href="{{ url_for('index') }}" class="nav-link">Главная</a></li>
-                <li><a href="{{ url_for('about_village') }}" class="nav-link">О деревне</a></li>
-                <li><a href="{{ url_for('bilingualism') }}" class="nav-link">Билингвизм</a></li>
-                <li><a href="{{ url_for('materials') }}" class="nav-link active">Материалы</a></li>
-                <li><a href="{{ url_for('research') }}" class="nav-link">Исследование</a></li>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="{{ url_for('index') }}" class="nav-link" data-page="index">Главная</a></li>
+                <li><a href="{{ url_for('about_village') }}" class="nav-link" data-page="about-village">О деревне</a></li>
+                <li><a href="{{ url_for('bilingualism') }}" class="nav-link" data-page="bilingualism">Билингвизм</a></li>
+                <li><a href="{{ url_for('materials') }}" class="nav-link" data-page="materials">Материалы</a></li>
+                <li><a href="{{ url_for('research') }}" class="nav-link" data-page="research">Исследование</a></li>
             </ul>
         </div>
     </nav>
