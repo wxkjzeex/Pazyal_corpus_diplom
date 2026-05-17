@@ -201,23 +201,28 @@
                         <div class="form-group">
                             <label for="transcription">Текст расшифровки</label>
                             <div class="transcription-toolbar">
-                                <button type="button" id="startTranscribeBtn" class="btn btn-secondary btn-sm">
-                                    🎤 Распознать из аудио
-                                </button>
-                                <button type="button" id="stopTranscribeBtn" class="btn btn-outline btn-sm" style="display: none;">
-                                    ⏹️ Остановить
+                                <button type="button" id="startTranscribeBtn" class="btn btn-primary btn-sm">
+                                    🎤 Распознать речь из аудиофайла
                                 </button>
                                 <span id="transcribeStatus" class="transcribe-status"></span>
                             </div>
-                            <textarea id="transcription" name="transcription" rows="8" placeholder="Введите текст транскрипции вручную или нажмите «Распознать из аудио»..."></textarea>
+                            <textarea id="transcription" name="transcription" rows="8"
+                                      placeholder="Выберите аудиофайл и нажмите «Распознать речь из аудиофайла»..."></textarea>
+
                             <div id="liveTranscript" class="live-transcript" style="display: none;">
                                 <div class="live-header">
-                                    <span>🎙️ Распознавание в реальном времени...</span>
-                                    <span class="live-indicator">● REC</span>
+                                    <span>🎙️ Статус распознавания</span>
                                 </div>
-                                <div id="liveTranscriptText" class="live-text"></div>
+                                <div id="liveTranscriptText" class="live-text">Ожидание...</div>
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label for="transcriber">Расшифровщик</label>
+                            <input type="text" id="transcriber" name="transcriber"
+                                   placeholder="Будет заполнено автоматически">
+                        </div>
+                    </div>
 
                         <div class="form-group">
                             <label for="transcriber">Расшифровщик</label>

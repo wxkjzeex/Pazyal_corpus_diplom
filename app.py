@@ -75,6 +75,213 @@ def research():
     return render_template('research.html')
 
 
+@app.route('/api/transcribe', methods=['POST'])
+def transcribe_audio():
+    """Распознавание речи из загруженного аудиофайла через Google Speech API"""
+    try:
+        print("=" * 50)
+        print("🎙️ Получен запрос на транскрибацию аудиофайла")
+
+        # Проверяем наличие файла
+        if 'audioFile' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'Аудиофайл не найден в запросе'
+            }), 400
+
+        audio_file = request.files['audioFile']
+
+        if not audio_file or not audio_file.filename:
+            return jsonify({
+                'success': False,
+                'error': 'Аудиофайл не выбран'
+            }), 400
+
+        print(f"📁 Файл: {audio_file.filename}")
+        print(f"📏 Размер: {audio_file.content_length} байт" if audio_file.content_length else "📏 Размер: неизвестен")
+        print(f"📋 Тип: {audio_file.content_type}")
+
+        # Определяем формат файла
+        filename = audio_file.filename.lower()
+
+        # Словарь форматов
+        format_map = {
+            '.mp3': {'encoding': 'MP3', 'sample_rate': 44100},
+            '.wav': {'encoding': 'LINEAR16', 'sample_rate': 44100},
+            '.flac': {'encoding': 'FLAC', 'sample_rate': 44100},
+            '.ogg': {'encoding': 'OGG_OPUS', 'sample_rate': 48000},
+            '.opus': {'encoding': 'OGG_OPUS', 'sample_rate': 48000},
+            '.webm': {'encoding': 'WEBM_OPUS', 'sample_rate': 48000},
+            '.m4a': {'encoding': 'MP3', 'sample_rate': 44100},
+            '.aac': {'encoding': 'MP3', 'sample_rate': 44100},
+        }
+
+        # Находим формат
+        encoding = None
+        sample_rate_hertz = 44100
+
+        for ext, info in format_map.items():
+            if filename.endswith(ext):
+                encoding = info['encoding']
+                sample_rate_hertz = info['sample_rate']
+                break
+
+        if not encoding:
+            return jsonify({
+                'success': False,
+                'error': f'Неподдерживаемый формат файла. Поддерживаются: MP3, WAV, FLAC, OGG, M4A, WEBM'
+            }), 400
+
+        print(f"🔧 Кодировка: {encoding}")
+        print(f"🔧 Частота дискретизации: {sample_rate_hertz} Гц")
+
+        # Читаем файл и кодируем в base64
+        audio_content = audio_file.read()
+        audio_base64 = base64.b64encode(audio_content).decode('utf-8')
+
+        print(f"📦 Base64 длина: {len(audio_base64)} символов")
+
+        # Проверяем размер (Google API: макс 10 МБ)
+        if len(audio_content) > 10 * 1024 * 1024:
+            return jsonify({
+                'success': False,
+                'error': 'Файл слишком большой. Максимальный размер: 10 МБ'
+            }), 400
+
+        # Проверяем наличие API ключа
+        api_key = app.config.get('GOOGLE_SPEECH_API_KEY')
+        if not api_key or api_key == 'ВАШ_API_КЛЮЧ_ЗДЕСЬ':
+            print("⚠️ API ключ не настроен, возвращаем демо-ответ")
+            # Возвращаем демо-транскрипцию для тестирования
+            demo_text = f"""[00:00] (Демо-режим) Аудиофайл "{audio_file.filename}" успешно загружен.
+[00:05] Формат: {encoding}, размер: {round(len(audio_content) / 1024, 1)} КБ
+[00:10] Для реальной транскрибации настройте Google Speech API ключ в файле .env
+[00:15] Инструкция: https://cloud.google.com/speech-to-text"""
+
+            return jsonify({
+                'success': True,
+                'transcript': demo_text,
+                'confidence': 100,
+                'fragments': 4,
+                'demo': True,
+                'warning': 'Демо-режим. API ключ не настроен.'
+            })
+
+        # Формируем запрос к Google Speech API
+        request_body = {
+            "config": {
+                "encoding": encoding,
+                "sampleRateHertz": sample_rate_hertz,
+                "languageCode": "ru-RU",
+                "enableAutomaticPunctuation": True,
+                "enableWordTimeOffsets": False,
+                "model": "default",
+                "useEnhanced": True
+            },
+            "audio": {
+                "content": audio_base64
+            }
+        }
+
+        print("📡 Отправка запроса к Google Speech API...")
+
+        # Отправляем запрос
+        url = f"https://speech.googleapis.com/v1/speech:recognize?key={api_key}"
+        response = requests.post(
+            url,
+            json=request_body,
+            headers={'Content-Type': 'application/json'},
+            timeout=120  # Увеличенный таймаут для больших файлов
+        )
+
+        print(f"📡 Статус ответа: {response.status_code}")
+
+        if response.status_code != 200:
+            error_data = response.json() if response.text else {}
+            error_msg = error_data.get('error', {}).get('message', 'Неизвестная ошибка API')
+            print(f"❌ Ошибка API: {error_msg}")
+
+            # Если ошибка из-за длительности, пробуем другой подход
+            if 'duration' in error_msg.lower() or 'too long' in error_msg.lower():
+                return jsonify({
+                    'success': False,
+                    'error': 'Аудиофайл слишком длинный. Максимальная длительность: 1 минута для синхронного распознавания.'
+                }), 400
+
+            return jsonify({
+                'success': False,
+                'error': f'Ошибка Google Speech API: {error_msg}'
+            }), 500
+
+        # Парсим ответ
+        result = response.json()
+        print("✅ Ответ получен, парсим результаты...")
+
+        # Собираем транскрипцию
+        transcript_parts = []
+        confidence_total = 0
+        confidence_count = 0
+
+        if 'results' in result:
+            total_results = len(result['results'])
+            print(f"📝 Распознано результатов: {total_results}")
+
+            for i, res in enumerate(result['results']):
+                if 'alternatives' in res and len(res['alternatives']) > 0:
+                    alt = res['alternatives'][0]
+                    text = alt.get('transcript', '').strip()
+                    confidence = alt.get('confidence', 0)
+
+                    if text:
+                        # Добавляем примерную временную метку
+                        estimated_seconds = i * 5  # ~5 секунд на фразу
+                        minutes = estimated_seconds // 60
+                        seconds = estimated_seconds % 60
+                        timestamp = f"[{minutes:02d}:{seconds:02d}]"
+
+                        transcript_parts.append(f"{timestamp} {text}")
+                        confidence_total += confidence
+                        confidence_count += 1
+
+                        print(f"  [{timestamp}] {text[:80]}...")
+
+        if not transcript_parts:
+            return jsonify({
+                'success': False,
+                'error': 'Не удалось распознать речь в аудиофайле. Возможные причины: нет речи, неразборчивая речь, шум.'
+            }), 400
+
+        full_transcript = '\n'.join(transcript_parts)
+        avg_confidence = round((confidence_total / confidence_count * 100) if confidence_count > 0 else 0, 1)
+
+        print(f"✅ Распознано {len(transcript_parts)} фрагментов")
+        print(f"✅ Средняя уверенность: {avg_confidence}%")
+
+        return jsonify({
+            'success': True,
+            'transcript': full_transcript,
+            'confidence': avg_confidence,
+            'fragments': len(transcript_parts),
+            'demo': False
+        })
+
+    except requests.exceptions.Timeout:
+        print("❌ Таймаут запроса к Google API")
+        return jsonify({
+            'success': False,
+            'error': 'Превышено время ожидания. Попробуйте файл меньшего размера.'
+        }), 504
+
+    except Exception as e:
+        print(f"❌ Ошибка при транскрибации: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 # ============================================
 # API ДЛЯ РАБОТЫ С МАТЕРИАЛАМИ
 # ============================================
