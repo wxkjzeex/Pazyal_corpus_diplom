@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Исследование | Русская речь д. Пазял</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="header-simple">
+        <div class="container">
+            <div class="logo">
+                <h1>Русская речь билингвов</h1>
+                <span class="subtitle">деревня Пазял, Можгинский район, Удмуртская Республика</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Навигация -->
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('index') }}" class="nav-link">Главная</a></li>
+                <li><a href="{{ url_for('about_village') }}" class="nav-link">О деревне</a></li>
+                <li><a href="{{ url_for('bilingualism') }}" class="nav-link">Билингвизм</a></li>
+                <li><a href="{{ url_for('materials') }}" class="nav-link active">Материалы</a></li>
+                <li><a href="{{ url_for('research') }}" class="nav-link">Исследование</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Заголовок страницы -->
+            <section class="page-header">
+                <h2>Исследование</h2>
+                <p class="page-subtitle">Научно-исследовательский проект по изучению русской речи билингвов д. Пазял</p>
+            </section>
+
+            <!-- Введение -->
+            <section class="text-block">
+                <div class="research-intro">
+                    <p>Данное исследование выполняется в рамках выпускной квалификационной работы бакалавра по направлению 09.03.03 «Прикладная информатика» на кафедре «Информационные системы» ИжГТУ имени М.Т. Калашникова.</p>
+                    <p>Проект направлен на создание веб-информационной системы для сбора, хранения и анализа материалов русской речи билингвов — жителей деревни Пазял Можгинского района Удмуртской Республики.</p>
+                </div>
+            </section>
+
+            <!-- Цель исследования -->
+            <section class="text-block highlight-block">
+                <h2>🎯 Цель исследования</h2>
+                <div class="goal-block">
+                    <p class="goal-text">Разработка веб-информационного ресурса, предназначенного для сбора, хранения, систематизации и анализа материалов русской речи билингвов (на примере жителей деревни Пазял), а также создание условий для их дальнейшего использования в научных и образовательных целях, включая изучение языковой интерференции и применение в практике преподавания русского языка.</p>
+                </div>
+            </section>
+
+            <!-- Задачи исследования -->
+            <section class="text-block">
+                <h2>📋 Задачи исследования</h2>
+
+                <div class="tasks-grid">
+                    <div class="task-card">
+                        <div class="task-number">1</div>
+                        <div class="task-content">
+                            <h4>Определение структуры данных</h4>
+                            <p>Формализация предметной области, выделение ключевых типов материалов: аудиозаписи, видеоматериалы, текстовые транскрипции и метаданные информантов.</p>
+                        </div>
+                    </div>
+
+                    <div class="task-card">
+                        <div class="task-number">2</div>
+                        <div class="task-content">
+                            <h4>Разработка моделей данных</h4>
+                            <p>Построение информационно-логической и даталогической моделей, обеспечивающих структурированное хранение материалов в базе данных.</p>
+                        </div>
+                    </div>
+
+                    <div class="task-card">
+                        <div class="task-number">3</div>
+                        <div class="task-content">
+                            <h4>Проектирование архитектуры</h4>
+                            <p>Разработка архитектуры веб-сайта, реализация программной структуры, включая пользовательский интерфейс, навигацию и функциональность поиска.</p>
+                        </div>
+                    </div>
+
+                    <div class="task-card">
+                        <div class="task-number">4</div>
+                        <div class="task-content">
+                            <h4>Наполнение и тестирование</h4>
+                            <p>Наполнение веб-сайта материалами русского говора деревни Пазял и проведение тестирования функциональности системы.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Объект и предмет -->
+            <div class="two-columns">
+                <section class="info-card">
+                    <h3>🔍 Объект исследования</h3>
+                    <p>Русская речь жителей деревни Пазял Можгинского района Удмуртской Республики, представляющих собой билингвальное сообщество, в котором наряду с русским языком активно функционирует удмуртский язык как родной.</p>
+                    <p>В условиях длительного языкового контакта в речи билингвов формируются устойчивые особенности, обусловленные влиянием удмуртского языка на русский.</p>
+                </section>
+
+                <section class="info-card">
+                    <h3>📌 Предмет исследования</h3>
+                    <p>Разработка веб-информационной системы корпусного типа, предназначенной для хранения, структурирования и анализа мультимедийных и текстовых данных, отражающих особенности русской речи билингвов.</p>
+                    <p>Система обеспечивает централизованное хранение данных, возможность поиска и фильтрации, а также представление результатов в удобной форме.</p>
+                </section>
+            </div>
+
+            <!-- Актуальность -->
+            <section class="text-block">
+                <h2>❗ Актуальность исследования</h2>
+
+                <div class="relevance-points">
+                    <div class="relevance-item">
+                        <span class="relevance-icon">🌐</span>
+                        <div>
+                            <h4>Цифровизация гуманитарных наук</h4>
+                            <p>Современные лингвистические исследования требуют создания цифровых ресурсов, обеспечивающих эффективное хранение и обработку языковых данных.</p>
+                        </div>
+                    </div>
+
+                    <div class="relevance-item">
+                        <span class="relevance-icon">🗣️</span>
+                        <div>
+                            <h4>Сохранение языкового наследия</h4>
+                            <p>Фиксация современного состояния удмуртско-русского двуязычия создает документальную базу для будущих исследований языковой ситуации в регионе.</p>
+                        </div>
+                    </div>
+
+                    <div class="relevance-item">
+                        <span class="relevance-icon">📚</span>
+                        <div>
+                            <h4>Практическая значимость</h4>
+                            <p>Результаты могут использоваться в преподавании русского языка как неродного и при разработке образовательных программ для национальных регионов.</p>
+                        </div>
+                    </div>
+
+                    <div class="relevance-item">
+                        <span class="relevance-icon">🔬</span>
+                        <div>
+                            <h4>Научная новизна</h4>
+                            <p>Впервые создается специализированный веб-ресурс, посвященный русской речи билингвов конкретного локального сообщества — деревни Пазял.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Методология -->
+            <section class="text-block">
+                <h2>⚙️ Методология исследования</h2>
+
+                <div class="methodology-tabs">
+                    <div class="method-group">
+                        <h3>Общенаучные методы</h3>
+                        <ul class="method-list">
+                            <li>Анализ научной литературы по социолингвистике и билингвизму</li>
+                            <li>Обобщение и систематизация информации</li>
+                            <li>Метод сравнения при анализе языковых явлений</li>
+                            <li>Классификация и типологизация данных</li>
+                        </ul>
+                    </div>
+
+                    <div class="method-group">
+                        <h3>Специальные методы</h3>
+                        <ul class="method-list">
+                            <li>Информационное моделирование (ER-диаграммы, UML)</li>
+                            <li>Методы проектирования реляционных баз данных</li>
+                            <li>Методы разработки веб-приложений</li>
+                            <li>Методы корпусной лингвистики</li>
+                            <li>Тестирование программного обеспечения</li>
+                        </ul>
+                    </div>
+
+                    <div class="method-group">
+                        <h3>Полевые методы</h3>
+                        <ul class="method-list">
+                            <li>Интервьюирование информантов</li>
+                            <li>Аудио- и видеофиксация устной речи</li>
+                            <li>Транскрибирование и аннотирование записей</li>
+                            <li>Сбор социолингвистических метаданных</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Этапы исследования -->
+            <section class="text-block">
+                <h2>📅 Этапы исследования</h2>
+
+                <div class="timeline-horizontal">
+                    <div class="timeline-phase">
+                        <div class="phase-marker">1</div>
+                        <div class="phase-content">
+                            <h4>Подготовительный этап</h4>
+                            <p>Изучение научной литературы, анализ предметной области, определение целей и задач, проектирование структуры данных.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-connector"></div>
+
+                    <div class="timeline-phase">
+                        <div class="phase-marker">2</div>
+                        <div class="phase-content">
+                            <h4>Проектирование</h4>
+                            <p>Разработка информационно-логической и даталогической моделей, проектирование архитектуры веб-приложения.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-connector"></div>
+
+                    <div class="timeline-phase">
+                        <div class="phase-marker">3</div>
+                        <div class="phase-content">
+                            <h4>Реализация</h4>
+                            <p>Создание базы данных, разработка серверной и клиентской частей веб-информационной системы.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-connector"></div>
+
+                    <div class="timeline-phase">
+                        <div class="phase-marker">4</div>
+                        <div class="phase-content">
+                            <h4>Наполнение и тестирование</h4>
+                            <p>Сбор полевых материалов, наполнение системы данными, тестирование и отладка функциональности.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ожидаемые результаты -->
+            <section class="text-block highlight-block-light">
+                <h2>📊 Ожидаемые результаты</h2>
+
+                <div class="results-grid">
+                    <div class="result-item">
+                        <span class="result-check">✅</span>
+                        <p>Функционирующая веб-информационная система для хранения и анализа материалов русской речи билингвов</p>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-check">✅</span>
+                        <p>Структурированная база данных, содержащая аудиозаписи, транскрипции и метаданные информантов</p>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-check">✅</span>
+                        <p>Удобный пользовательский интерфейс с функциями поиска, фильтрации и просмотра материалов</p>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-check">✅</span>
+                        <p>Цифровая платформа для дальнейших лингвистических исследований удмуртско-русского билингвизма</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Информация о ВКР -->
+            <section class="text-block about-work">
+                <h2>📖 О выпускной квалификационной работе</h2>
+
+                <div class="vkr-info">
+                    <div class="vkr-item">
+                        <strong>Тема ВКР:</strong>
+                        <span>«Разработка веб-сайта русской речи д. Пазял Можгинского района Удмуртии»</span>
+                    </div>
+                    <div class="vkr-item">
+                        <strong>Направление подготовки:</strong>
+                        <span>09.03.03 «Прикладная информатика»</span>
+                    </div>
+                    <div class="vkr-item">
+                        <strong>Образовательное учреждение:</strong>
+                        <span>ФГБОУ ВО «ИжГТУ имени М.Т. Калашникова»</span>
+                    </div>
+                    <div class="vkr-item">
+                        <strong>Институт:</strong>
+                        <span>«Информатика и вычислительная техника»</span>
+                    </div>
+                    <div class="vkr-item">
+                        <strong>Кафедра:</strong>
+                        <span>«Информационные системы»</span>
+                    </div>
+                    <div class="vkr-item">
+                        <strong>Год защиты:</strong>
+                        <span>2026</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Подвал -->
+    <footer class="footer-simple">
+        <div class="container">
+            <p>© 2026 Русская речь билингвов д. Пазял</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

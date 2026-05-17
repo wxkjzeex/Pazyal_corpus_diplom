@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Permissions-Policy" content="microphone=(self)">
+    <title>Материалы | Русская речь д. Пазял</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="header-simple">
+        <div class="container">
+            <div class="logo">
+                <h1>Русская речь билингвов</h1>
+                <span class="subtitle">деревня Пазял, Можгинский район, Удмуртская Республика</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Навигация -->
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('index') }}" class="nav-link">Главная</a></li>
+                <li><a href="{{ url_for('about_village') }}" class="nav-link">О деревне</a></li>
+                <li><a href="{{ url_for('bilingualism') }}" class="nav-link">Билингвизм</a></li>
+                <li><a href="{{ url_for('materials') }}" class="nav-link active">Материалы</a></li>
+                <li><a href="{{ url_for('research') }}" class="nav-link">Исследование</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Заголовок страницы с кнопкой добавления -->
+            <div class="page-header-with-action">
+                <div class="page-header">
+                    <h2>Материалы исследований</h2>
+                    <p class="page-subtitle">Аудиозаписи, транскрипции и метаданные информантов</p>
+                </div>
+                <div class="header-actions">
+                    <a href="#add-material" class="btn btn-primary btn-large" id="showAddFormBtn">
+                        <span class="btn-icon">+</span> Добавить материал
+                    </a>
+                </div>
+            </div>
+
+            <!-- Статистика (демо-данные) -->
+            <div class="materials-stats">
+                <div class="stat-item">
+                    <span class="stat-value" id="totalRecords">0</span>
+                    <span class="stat-name">Всего записей</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="totalInformants">0</span>
+                    <span class="stat-name">Информантов</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="totalDuration">0:00</span>
+                    <span class="stat-name">Часов записи</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="avgAge">0</span>
+                    <span class="stat-name">Средний возраст</span>
+                </div>
+            </div>
+
+            <!-- Форма добавления материала (изначально скрыта) -->
+            <div class="add-material-section" id="addMaterialSection" style="display: none;">
+                <div class="section-header">
+                    <h3>➕ Добавление нового материала</h3>
+                    <button class="close-btn" id="closeFormBtn">&times;</button>
+                </div>
+
+                <form id="addMaterialForm" class="material-form" enctype="multipart/form-data">
+                    <!-- Шаг 1: Информант -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">1</span>
+                            <h4>Данные информанта</h4>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="informantAge">Возраст *</label>
+                                <input type="number" id="informantAge" name="age" min="18" max="100" placeholder="Например: 67" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="informantGender">Пол *</label>
+                                <select id="informantGender" name="gender" required>
+                                    <option value="">Выберите...</option>
+                                    <option value="женский">Женский</option>
+                                    <option value="мужской">Мужской</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="informantEducation">Образование *</label>
+                                <select id="informantEducation" name="education" required>
+                                    <option value="">Выберите...</option>
+                                    <option value="начальное">Начальное</option>
+                                    <option value="среднее">Среднее</option>
+                                    <option value="среднее специальное">Среднее специальное</option>
+                                    <option value="высшее">Высшее</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="russianLevel">Уровень владения русским *</label>
+                                <select id="russianLevel" name="russianLevel" required>
+                                    <option value="">Выберите...</option>
+                                    <option value="начальный">Начальный</option>
+                                    <option value="средний">Средний</option>
+                                    <option value="хороший">Хороший</option>
+                                    <option value="свободное владение">Свободное владение</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="nativeLanguage">Родной язык *</label>
+                            <input type="text" id="nativeLanguage" name="nativeLanguage" value="удмуртский" required>
+                        </div>
+                    </div>
+
+                    <!-- Шаг 2: Запись -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">2</span>
+                            <h4>Параметры записи</h4>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="recordDate">Дата записи *</label>
+                                <input type="date" id="recordDate" name="recordDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recordLocation">Место записи *</label>
+                                <input type="text" id="recordLocation" name="location" value="д. Пазял" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="recordTopic">Тема разговора *</label>
+                            <input type="text" id="recordTopic" name="topic" placeholder="Например: Воспоминания о детстве" required>
+                        </div>
+                    </div>
+
+                    <!-- Шаг 3: Медиафайлы -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">3</span>
+                            <h4>Медиафайлы</h4>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="audioFile">Аудиозапись</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="audioFile" name="audioFile" accept="audio/*" class="file-input">
+                                <span class="file-placeholder" id="audioPlaceholder">Выберите аудиофайл (MP3, WAV)</span>
+                            </div>
+                            <!-- Аудиоплеер для предпрослушивания -->
+                            <div id="audioPreview" class="audio-preview" style="display: none;">
+                                <audio controls id="audioPlayer" class="audio-player-inline">
+                                    Ваш браузер не поддерживает аудиоплеер.
+                                </audio>
+                                <div class="audio-info">
+                                    <span id="audioFileName"></span>
+                                    <span id="audioFileSize"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="videoFile">Видеозапись (опционально)</label>
+                            <div class="file-input-wrapper">
+                                <input type="file" id="videoFile" name="videoFile" accept="video/*" class="file-input">
+                                <span class="file-placeholder" id="videoPlaceholder">Выберите видеофайл (MP4, AVI)</span>
+                            </div>
+                            <!-- Видеоплеер для предпрослушивания -->
+                            <div id="videoPreview" class="video-preview" style="display: none;">
+                                <video controls id="videoPlayer" class="video-player-inline" style="max-width: 100%; max-height: 200px;">
+                                    Ваш браузер не поддерживает видеоплеер.
+                                </video>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Шаг 4: Транскрипция -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">4</span>
+                            <h4>Текстовая транскрипция</h4>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transcription">Текст расшифровки</label>
+                            <div class="transcription-toolbar">
+                                <button type="button" id="startTranscribeBtn" class="btn btn-secondary btn-sm">
+                                    🎤 Распознать из аудио
+                                </button>
+                                <button type="button" id="stopTranscribeBtn" class="btn btn-outline btn-sm" style="display: none;">
+                                    ⏹️ Остановить
+                                </button>
+                                <span id="transcribeStatus" class="transcribe-status"></span>
+                            </div>
+                            <textarea id="transcription" name="transcription" rows="8" placeholder="Введите текст транскрипции вручную или нажмите «Распознать из аудио»..."></textarea>
+                            <div id="liveTranscript" class="live-transcript" style="display: none;">
+                                <div class="live-header">
+                                    <span>🎙️ Распознавание в реальном времени...</span>
+                                    <span class="live-indicator">● REC</span>
+                                </div>
+                                <div id="liveTranscriptText" class="live-text"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transcriber">Расшифровщик</label>
+                            <input type="text" id="transcriber" name="transcriber" placeholder="ФИО расшифровщика" value="Автоматическое распознавание">
+                        </div>
+                    </div>
+                    <!-- Шаг 5: Метаданные -->
+                    <div class="form-step">
+                        <div class="step-header">
+                            <span class="step-number">5</span>
+                            <h4>Метаданные</h4>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="equipment">Оборудование</label>
+                                <input type="text" id="equipment" name="equipment" placeholder="Например: Диктофон Zoom H4n">
+                            </div>
+                            <div class="form-group">
+                                <label for="noiseLevel">Уровень шума</label>
+                                <select id="noiseLevel" name="noiseLevel">
+                                    <option value="низкий">Низкий</option>
+                                    <option value="средний">Средний</option>
+                                    <option value="высокий">Высокий</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="conditions">Условия записи</label>
+                            <textarea id="conditions" name="conditions" rows="2" placeholder="Опишите обстановку, наличие посторонних звуков и т.д."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="comments">Комментарии исследователя</label>
+                            <textarea id="comments" name="comments" rows="2" placeholder="Дополнительные наблюдения, заметки"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Сохранить материал</button>
+                        <button type="reset" class="btn btn-secondary">🗑️ Очистить форму</button>
+                        <button type="button" class="btn btn-outline" id="cancelFormBtn">Отмена</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Поиск и фильтры -->
+            <div class="materials-filters">
+                <div class="filter-row">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="🔍 Поиск по тексту транскрипций..." class="search-input">
+                    </div>
+                    <div class="filter-buttons">
+                        <select id="genderFilter" class="filter-select">
+                            <option value="">Все пола</option>
+                            <option value="женский">Женский</option>
+                            <option value="мужской">Мужской</option>
+                        </select>
+                        <select id="ageFilter" class="filter-select">
+                            <option value="">Любой возраст</option>
+                            <option value="18-35">18-35 лет</option>
+                            <option value="36-55">36-55 лет</option>
+                            <option value="56+">56+ лет</option>
+                        </select>
+                        <select id="educationFilter" class="filter-select">
+                            <option value="">Любое образование</option>
+                            <option value="начальное">Начальное</option>
+                            <option value="среднее">Среднее</option>
+                            <option value="среднее специальное">Среднее специальное</option>
+                            <option value="высшее">Высшее</option>
+                        </select>
+                        <button class="btn btn-secondary" id="resetFiltersBtn">Сбросить</button>
+                    </div>
+                </div>
+
+                <div class="filter-tags" id="activeFilters">
+                    <!-- Активные фильтры будут отображаться здесь -->
+                </div>
+            </div>
+
+            <!-- Список материалов -->
+            <div class="materials-list" id="materialsList">
+                <!-- Карточки материалов будут добавляться динамически -->
+            </div>
+
+            <!-- Сообщение о пустом списке -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📭</div>
+                <h3>Материалов пока нет</h3>
+                <p>Нажмите «Добавить материал», чтобы начать наполнение базы данных</p>
+                <button class="btn btn-primary" id="emptyAddBtn">➕ Добавить первый материал</button>
+            </div>
+
+            <!-- Пагинация -->
+            <div class="pagination" id="pagination" style="display: none;">
+                <button class="page-btn" id="prevPage" disabled>← Назад</button>
+                <span class="page-info" id="pageInfo">Страница 1 из 1</span>
+                <button class="page-btn" id="nextPage" disabled>Вперед →</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Подвал -->
+    <footer class="footer-simple">
+        <div class="container">
+            <p>© 2026 Русская речь билингвов д. Пазял</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/materials.js') }}"></script>
+</body>
+</html>

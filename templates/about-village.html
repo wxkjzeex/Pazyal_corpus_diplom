@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О деревне Пазял | Русская речь билингвов</title>
+
+    <!-- ВАЖНО: Подключаем CSS Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="header-simple">
+        <div class="container">
+            <div class="logo">
+                <h1>Русская речь билингвов</h1>
+                <span class="subtitle">деревня Пазял, Можгинский район, Удмуртская Республика</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Навигация -->
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('index') }}" class="nav-link">Главная</a></li>
+                <li><a href="{{ url_for('about_village') }}" class="nav-link">О деревне</a></li>
+                <li><a href="{{ url_for('bilingualism') }}" class="nav-link">Билингвизм</a></li>
+                <li><a href="{{ url_for('materials') }}" class="nav-link active">Материалы</a></li>
+                <li><a href="{{ url_for('research') }}" class="nav-link">Исследование</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Заголовок страницы -->
+            <section class="page-header">
+                <h2>Деревня Пазял</h2>
+                <p class="page-subtitle">Можгинский район, Удмуртская Республика</p>
+            </section>
+
+            <!-- Фото деревни (герой-блок) -->
+            <section class="village-hero">
+                <img src="https://школьныйтуризмроссии.рф/upload/iblock/371/dvzt3fibz63ksdc198o8pah1w1cmo45k.jpg" alt="Панорама деревни Пазял">
+            </section>
+
+            <!-- Основная информация (две колонки) -->
+            <div class="two-columns">
+                <section class="info-card">
+                    <h3>📍 Географическое положение</h3>
+                    <p>Деревня Пазял расположена в юго-западной части Удмуртской Республики, в Можгинском районе. Расстояние до районного центра — города Можга — составляет около 15 километров.</p>
+                    <p>Ближайшие населенные пункты: деревня Малая Сюга, село Большая Уча, село Малая Воложикья, деревня Новая Бия. Местность характеризуется равнинным рельефом с небольшими возвышенностями, типичными для южной Удмуртии.</p>
+                    <p>Через деревню протекает небольшая река, являющаяся притоком реки Вала, которая в свою очередь впадает в реку Вятку.</p>
+                </section>
+
+                <section class="info-card">
+                    <h3>📊 Демография</h3>
+                    <p>По данным последней переписи, численность населения деревни составляет около <strong>800 человек</strong>. Деревня является практически моноэтничной — доля удмуртского населения достигает <strong>96%</strong>.</p>
+                    <p>Возрастная структура населения:</p>
+                    <ul class="simple-list">
+                        <li>Дети и подростки (до 18 лет) — около 20%</li>
+                        <li>Трудоспособное население (18-60 лет) — около 55%</li>
+                        <li>Пенсионеры (старше 60 лет) — около 25%</li>
+                    </ul>
+                    <p>В последние десятилетия наблюдается постепенный отток молодежи в города, что характерно для многих сельских территорий Удмуртии.</p>
+                </section>
+            </div>
+
+            <!-- История деревни -->
+            <section class="text-block">
+                <h2>📜 История деревни</h2>
+                <p>Точная дата основания деревни Пазял неизвестна, однако первые упоминания о поселениях на этой территории относятся к <strong>XVIII веку</strong>. Название деревни имеет удмуртское происхождение и, по мнению краеведов, связано с особенностями местного ландшафта или именем первопоселенца.</p>
+
+                <div class="history-highlight">
+                    <p>В XIX веке деревня входила в состав Елабужского уезда Вятской губернии. Основным занятием жителей было земледелие, животноводство, а также лесные промыслы — сбор ягод, грибов, охота.</p>
+                </div>
+
+                <p>В советский период деревня стала центром одного из колхозов Можгинского района. Были построены школа, клуб, фельдшерский пункт. Многие жители деревни участвовали в Великой Отечественной войне, их имена увековечены на памятнике в центре деревни.</p>
+
+                <p>В постсоветский период, как и многие сельские населенные пункты, Пазял переживал экономические трудности, однако сохранил свою идентичность, традиционный уклад жизни и языковую среду.</p>
+            </section>
+
+            <!-- Социальная инфраструктура -->
+            <section class="text-block">
+                <h2>🏫 Социальная инфраструктура</h2>
+
+                <div class="infrastructure-grid">
+                    <div class="infra-item">
+                        <div class="infra-icon">🏫</div>
+                        <h4>Школа</h4>
+                        <p>В деревне работает средняя общеобразовательная школа, где обучаются дети из Пазяла и окрестных деревень. Обучение ведется на русском языке, удмуртский язык изучается как предмет.</p>
+                    </div>
+
+                    <div class="infra-item">
+                        <div class="infra-icon">📚</div>
+                        <h4>Библиотека и клуб</h4>
+                        <p>Сельский клуб является центром культурной жизни. Здесь проводятся праздники, концерты, работают кружки. При клубе действует библиотека с фондом литературы на русском и удмуртском языках.</p>
+                    </div>
+
+                    <div class="infra-item">
+                        <div class="infra-icon">🏥</div>
+                        <h4>Медицина</h4>
+                        <p>В деревне работает фельдшерско-акушерский пункт (ФАП), оказывающий первичную медицинскую помощь. Более сложные случаи направляются в Можгинскую районную больницу.</p>
+                    </div>
+
+                    <div class="infra-item">
+                        <div class="infra-icon">🛒</div>
+                        <h4>Торговля</h4>
+                        <p>В Пазяле имеется несколько продуктовых магазинов, обеспечивающих жителей товарами первой необходимости. Раз в неделю работает рынок, куда приезжают торговцы из Можги.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Экономика и быт -->
+            <section class="text-block">
+                <h2>🌾 Экономика и традиционный быт</h2>
+                <p>Основу экономики деревни составляет сельское хозяйство. Многие жители держат личные подсобные хозяйства: выращивают овощи, картофель, разводят скот и птицу. Часть продукции реализуется на местном рынке или используется для собственного потребления.</p>
+
+                <p>В окрестностях деревни находятся сельскохозяйственные угодья, которые обрабатываются местными фермерами и сельхозпредприятиями. Выращиваются зерновые культуры, кормовые травы.</p>
+
+                <p>Традиционные промыслы, такие как сбор лесных ягод (черника, брусника, клюква) и грибов, сохраняют свое значение как для личного потребления, так и для продажи.</p>
+
+                <div class="quote-block">
+                    <p>«Мы раньше совсем по-другому жили. В лес ходили часто. Ягоды собирать надо было. Черника, брусника. Это у нас как заготовка на зиму.»</p>
+                    <span class="quote-author">— Из рассказа жительницы д. Пазял</span>
+                </div>
+            </section>
+
+            <!-- Транспорт и связь -->
+            <div class="two-columns">
+                <section class="info-card">
+                    <h3>🚌 Транспортное сообщение</h3>
+                    <p>Деревня связана с районным центром асфальтированной дорогой. Регулярное автобусное сообщение с городом Можга осуществляется несколько раз в день.</p>
+                    <p>Расстояние до столицы Удмуртии — города Ижевска — составляет около 100 километров. Добраться можно на автобусе с пересадкой в Можге или на личном транспорте.</p>
+                    <p>Внутренние дороги в деревне частично асфальтированы, частично грунтовые.</p>
+                </section>
+
+                <section class="info-card">
+                    <h3>📱 Связь и коммуникации</h3>
+                    <p>В деревне доступна мобильная связь основных российских операторов, однако качество сигнала может варьироваться в зависимости от местоположения.</p>
+                    <p>Проводной интернет доступен в школе, административных зданиях и у части жителей. Мобильный интернет работает, но скорость может быть ограничена.</p>
+                    <p>Почтовое отделение обслуживает жителей деревни и окрестных населенных пунктов.</p>
+                </section>
+            </div>
+
+            <!-- ИНТЕРАКТИВНАЯ КАРТА -->
+            <section class="map-section">
+                <h2>🗺️ Пазял на карте</h2>
+                <p class="map-description">Интерактивная карта Можгинского района с отметкой расположения деревни Пазял.</p>
+
+                <div class="map-wrapper">
+                    <div id="villageMap" class="interactive-map"></div>
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <span class="legend-marker village-marker"></span>
+                            <span>д. Пазял</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-marker city-marker"></span>
+                            <span>г. Можга (районный центр)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="map-info">
+                    <div class="map-info-item">
+                        <strong>Координаты:</strong> 56°62′ с.ш. 52°17′ в.д.
+                    </div>
+                    <div class="map-info-item">
+                        <strong>Расстояние до Можги:</strong> ~15 км
+                    </div>
+                    <div class="map-info-item">
+                        <strong>Расстояние до Ижевска:</strong> ~100 км
+                    </div>
+                </div>
+            </section>
+
+            <!-- Фотогалерея деревни -->
+            <section class="gallery-section">
+                <h2>📸 Фотографии деревни</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item">
+                        <img src="https://sun9-35.userapi.com/s/v1/ig2/FlajUY2PpdtFSe7m1t-Udkw0dDzbvUmKrZ2TMU9mS6vXd3gFu16i416KoEKRoOl-yadqgvIT9pFUPlxA2rw2TmJf.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280,1440x1440,2560x2560&from=bu&cs=2560x0" alt="ДК в Пазяле">
+                        <span>Сельский дом культуры</span>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://sun9-20.userapi.com/s/v1/ig2/TdtkYNfgrvL0PNLGCOxDUmlUmOvoH1zrkNkQSfPmaB-UYufQ083HN2JL-xyCINmfnkYxPWZORRl2XcE7ovlSHy1D.jpg?quality=95&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427,720x480,1080x720,1280x853,1440x960,2560x1707&from=bu&cs=2560x0" alt="Школа в Пазяле">
+                        <span>Сельская школа</span>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="https://sun9-48.userapi.com/s/v1/ig2/mDuhoA_N7oc5JFHF0yh94NyH2Zeg5EfskWu6-fz08zvYkXCg0JJ_KnuvDjVOPh4a5YwXqjKi9qAr5JyoKW6ltPtI.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&cs=2560x0" alt="Природа вокруг Пазяла">
+                        <span>Окрестности деревни</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Интересные факты -->
+            <section class="facts-section">
+                <h2>💡 Интересные факты о Пазяле</h2>
+                <div class="facts-grid">
+                    <div class="fact-item">
+                        <span class="fact-number">1</span>
+                        <p>Название «Пазял» предположительно происходит от удмуртских слов, связанных с географическими особенностями местности.</p>
+                    </div>
+                    <div class="fact-item">
+                        <span class="fact-number">2</span>
+                        <p>В деревне до сих пор сохраняются традиции празднования удмуртских национальных праздников, таких как Гербер (праздник окончания посевных работ).</p>
+                    </div>
+                    <div class="fact-item">
+                        <span class="fact-number">3</span>
+                        <p>Старшее поколение жителей свободно владеет удмуртским языком и использует его в повседневном общении, что способствует сохранению языковой среды.</p>
+                    </div>
+                    <div class="fact-item">
+                        <span class="fact-number">4</span>
+                        <p>Русская речь местных жителей имеет характерные особенности, обусловленные влиянием удмуртского языка, что делает ее уникальным объектом лингвистических исследований.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Подвал -->
+    <footer class="footer-simple">
+        <div class="container">
+            <p>© 2026 Русская речь билингвов д. Пазял</p>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS для карты -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Скрипт инициализации карты -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Координаты деревни Пазял (Можгинский район, Удмуртия)
+            // Примерные координаты - их нужно уточнить
+            const pazyalLat = 56.625762;
+            const pazyalLng = 52.178239;
+
+            // Координаты города Можга
+            const mozhgaLat = 56.4500;
+            const mozhgaLng = 52.2167;
+
+            // Создаем карту
+            const map = L.map('villageMap').setView([pazyalLat, pazyalLng], 12);
+
+            // Добавляем слой OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 18,
+                language: 'ru'
+            }).addTo(map);
+
+            // Создаем кастомную иконку для деревни
+            const villageIcon = L.divIcon({
+                html: '<div style="background-color: #27ae60; width: 16px; height: 16px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                className: 'custom-marker',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            // Создаем кастомную иконку для города
+            const cityIcon = L.divIcon({
+                html: '<div style="background-color: #e74c3c; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"></div>',
+                className: 'custom-marker',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+
+            // Добавляем маркер деревни Пазял
+            const pazyalMarker = L.marker([pazyalLat, pazyalLng], { icon: villageIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="font-family: 'Roboto', sans-serif; padding: 5px;">
+                        <h4 style="margin: 0 0 8px 0; color: #2c3e50;">📍 д. Пазял</h4>
+                        <p style="margin: 5px 0;"><strong>Можгинский район</strong></p>
+                        <p style="margin: 5px 0;"><strong>Удмуртская Республика</strong></p>
+                        <p style="margin: 5px 0; color: #666;">Население: ~800 чел.</p>
+                        <p style="margin: 5px 0; color: #666;">96% удмурты</p>
+                    </div>
+                `);
+
+            // Добавляем маркер города Можга
+            const mozhgaMarker = L.marker([mozhgaLat, mozhgaLng], { icon: cityIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="font-family: 'Roboto', sans-serif; padding: 5px;">
+                        <h4 style="margin: 0 0 8px 0; color: #2c3e50;">🏙️ г. Можга</h4>
+                        <p style="margin: 5px 0;"><strong>Районный центр</strong></p>
+                        <p style="margin: 5px 0; color: #666;">Расстояние до Пазяла: ~15 км</p>
+                    </div>
+                `);
+
+            // Добавляем круг, показывающий примерную область вокруг деревни
+            L.circle([pazyalLat, pazyalLng], {
+                color: '#27ae60',
+                fillColor: '#27ae60',
+                fillOpacity: 0.1,
+                radius: 2000,
+                weight: 1,
+                dashArray: '5, 5'
+            }).addTo(map).bindPopup('Окрестности д. Пазял (радиус 2 км)');
+
+            // Автоматически открываем попап с информацией о деревне
+            pazyalMarker.openPopup();
+
+            // Добавляем масштабную линейку
+            L.control.scale({
+                metric: true,
+                imperial: false,
+                position: 'bottomleft'
+            }).addTo(map);
+
+            console.log('Карта деревни Пазял загружена');
+        });
+    </script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

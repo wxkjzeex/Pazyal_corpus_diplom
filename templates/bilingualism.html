@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Билингвизм | Русская речь д. Пазял</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Шапка -->
+    <header class="header-simple">
+        <div class="container">
+            <div class="logo">
+                <h1>Русская речь билингвов</h1>
+                <span class="subtitle">деревня Пазял, Можгинский район, Удмуртская Республика</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Навигация -->
+    <nav class="main-nav">
+        <div class="container">
+            <ul class="nav-menu">
+                <li><a href="{{ url_for('index') }}" class="nav-link">Главная</a></li>
+                <li><a href="{{ url_for('about_village') }}" class="nav-link">О деревне</a></li>
+                <li><a href="{{ url_for('bilingualism') }}" class="nav-link">Билингвизм</a></li>
+                <li><a href="{{ url_for('materials') }}" class="nav-link active">Материалы</a></li>
+                <li><a href="{{ url_for('research') }}" class="nav-link">Исследование</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Заголовок страницы -->
+            <section class="page-header">
+                <h2>Удмуртско-русский билингвизм</h2>
+                <p class="page-subtitle">Особенности двуязычия жителей деревни Пазял</p>
+            </section>
+
+            <!-- Введение -->
+            <section class="text-block">
+                <div class="intro-bilingualism">
+                    <div class="intro-text">
+                        <p>Билингвизм (двуязычие) — это способность человека или социальной группы использовать два языка в зависимости от коммуникативной ситуации. В условиях деревни Пазял сложился <strong>естественный удмуртско-русский билингвизм</strong>, при котором оба языка усваиваются с детства в процессе повседневного общения.</p>
+                        <p>Длительное сосуществование удмуртского и русского языков привело к формированию устойчивой билингвальной среды, где языки функционально распределены по сферам употребления.</p>
+                    </div>
+                    <div class="intro-highlight">
+                        <div class="highlight-stat">
+                            <span class="stat-big">96%</span>
+                            <span class="stat-label">населения — удмурты</span>
+                        </div>
+                        <div class="highlight-stat">
+                            <span class="stat-big">2</span>
+                            <span class="stat-label">языка в активном использовании</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Типы билингвизма -->
+            <section class="text-block">
+                <h2>📚 Типы билингвизма в д. Пазял</h2>
+
+                <div class="bilingualism-types">
+                    <div class="type-card">
+                        <div class="type-icon">🌿</div>
+                        <h3>Естественный билингвизм</h3>
+                        <p>Формируется в условиях языкового контакта с раннего возраста. Дети в Пазяле слышат удмуртскую речь в семье и русскую — в школе, СМИ, при общении за пределами деревни.</p>
+                    </div>
+
+                    <div class="type-card">
+                        <div class="type-icon">⚖️</div>
+                        <h3>Субординативный билингвизм</h3>
+                        <p>Родной (удмуртский) язык оказывает значительное влияние на второй (русский) язык. Это проявляется в фонетике, лексике и грамматике русской речи местных жителей.</p>
+                    </div>
+                </div>
+
+                <!-- Схема билингвальной среды (из ВКР, рисунок 1) -->
+                <div class="schema-block">
+                    <h3>Схема билингвальной языковой среды д. Пазял</h3>
+                    <div class="bilingual-schema">
+                        <div class="schema-visual">
+                            <!-- Левая часть: Удмуртский язык -->
+                            <div class="schema-left">
+                                <div class="language-block language-udmurt">
+                                    <div class="language-label">
+                                        <span>🌿</span> Удмуртский язык
+                                    </div>
+                                    <div class="language-items">
+                                        <span>Семья</span>
+                                        <span>Быт</span>
+                                        <span>Традиции</span>
+                                        <span>Старшее поколение</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Стрелка -->
+                            <div class="schema-arrow">↔️</div>
+
+                            <!-- Центр: Языковая личность -->
+                            <div class="schema-center-new">
+                                <div class="schema-center-box">
+                                    Языковая личность<br>билингва
+                                </div>
+                            </div>
+
+                            <!-- Стрелка -->
+                            <div class="schema-arrow">↔️</div>
+
+                            <!-- Правая часть: Русский язык -->
+                            <div class="schema-right">
+                                <div class="language-block language-russian">
+                                    <div class="language-label">
+                                        <span>🇷🇺</span> Русский язык
+                                    </div>
+                                    <div class="language-items">
+                                        <span>Школа</span>
+                                        <span>Официальное общение</span>
+                                        <span>СМИ</span>
+                                        <span>Город</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="schema-caption">Функциональное распределение языков в билингвальной среде д. Пазял</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Языковая интерференция -->
+            <section class="text-block">
+                <h2>🔄 Языковая интерференция</h2>
+                <p>Интерференция — это влияние одной языковой системы на другую, возникающее в условиях билингвизма. В речи жителей Пазяла наблюдается устойчивая интерференция на разных языковых уровнях.</p>
+
+                <div class="interference-grid">
+                    <div class="interference-card phonetic">
+                        <div class="card-header">
+                            <span class="card-icon">🗣️</span>
+                            <h3>Фонетическая интерференция</h3>
+                        </div>
+                        <div class="card-content">
+                            <p>Особенности произношения, обусловленные влиянием фонетической системы удмуртского языка:</p>
+                            <ul class="feature-list">
+                                <li>Отсутствие редукции безударных гласных («оканье»)</li>
+                                <li>Особая интонация с восходящим тоном в конце фразы</li>
+                                <li>Смягчение согласных в нетипичных для русского языка позициях</li>
+                                <li>Специфическое произношение шипящих звуков</li>
+                            </ul>
+                            <div class="example-block">
+                                <p class="example-title">📝 Пример:</p>
+                                <p class="example-text">«Молокó» (с ударным [о] в первом слоге, без редукции)</p>
+                                <p class="example-text">«Пойдёмтэ» (с добавлением удмуртского окончания)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interference-card lexical">
+                        <div class="card-header">
+                            <span class="card-icon">📖</span>
+                            <h3>Лексическая интерференция</h3>
+                        </div>
+                        <div class="card-content">
+                            <p>Использование удмуртских слов и калькирование выражений:</p>
+                            <ul class="feature-list">
+                                <li>Прямые заимствования из удмуртского языка</li>
+                                <li>Кальки (дословный перевод удмуртских выражений)</li>
+                                <li>Региональные названия предметов быта и явлений</li>
+                                <li>Смешение лексики двух языков в одной фразе</li>
+                            </ul>
+                            <div class="example-block">
+                                <p class="example-title">📝 Примеры:</p>
+                                <p class="example-text">«Пельнянь» — хлебные ушки (пельмени)</p>
+                                <p class="example-text">«Идите кушать» (калька с удм. «сииськыны мынэ»)</p>
+                                <p class="example-text">«Куашет» — шумит, гремит (о грозе)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="interference-card grammatical">
+                        <div class="card-header">
+                            <span class="card-icon">✏️</span>
+                            <h3>Грамматическая интерференция</h3>
+                        </div>
+                        <div class="card-content">
+                            <p>Особенности построения предложений и использования грамматических форм:</p>
+                            <ul class="feature-list">
+                                <li>Иной порядок слов (SOV вместо SVO)</li>
+                                <li>Ошибки в согласовании по роду и падежу</li>
+                                <li>Использование послелогов вместо предлогов</li>
+                                <li>Особенности употребления глагольных форм</li>
+                            </ul>
+                            <div class="example-block">
+                                <p class="example-title">📝 Примеры:</p>
+                                <p class="example-text">«Я в магазин пошёл» (вместо «пошёл в магазин»)</p>
+                                <p class="example-text">«Книга стол на лежит» (калька с удмуртского)</p>
+                                <p class="example-text">«Моя сестра красивая» (без согласования: «моя сестра красивый»)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Исторический контекст -->
+            <section class="text-block">
+                <h2>📜 Исторические предпосылки билингвизма</h2>
+
+                <div class="history-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-period">XVI-XVIII вв.</div>
+                        <div class="timeline-content">
+                            <h4>Вхождение в состав Российского государства</h4>
+                            <p>Удмуртские земли включаются в состав России. Начинается распространение русского языка в административной сфере, однако в быту сохраняется удмуртский язык.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-period">XIX — нач. XX вв.</div>
+                        <div class="timeline-content">
+                            <h4>Развитие образования и письменности</h4>
+                            <p>Создание удмуртской письменности, появление школ с преподаванием на русском и удмуртском языках. Формирование устойчивого двуязычия.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-period">Советский период</div>
+                        <div class="timeline-content">
+                            <h4>Массовое распространение русского языка</h4>
+                            <p>Русский язык становится языком межнационального общения, образования, СМИ. Удмуртский язык сохраняется в семейно-бытовой сфере и национальной культуре.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-period">Современность</div>
+                        <div class="timeline-content">
+                            <h4>Сохранение национально-русского двуязычия</h4>
+                            <p>В сельских районах, таких как Пазял, сохраняется устойчивое удмуртско-русское двуязычие с функциональным распределением сфер использования языков.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Особенности речи жителей Пазяла -->
+            <section class="text-block">
+                <h2>🗣️ Особенности русской речи жителей д. Пазял</h2>
+
+                <div class="speech-examples">
+                    <p>На основе полевых исследований были выявлены следующие характерные особенности:</p>
+
+                    <div class="example-dialog">
+                        <div class="dialog-header">
+                            <span class="dialog-label">🎙️ Фрагмент разговора с жительницей д. Пазял (67 лет)</span>
+                        </div>
+                        <div class="dialog-content">
+                            <div class="dialog-line researcher">
+                                <span class="speaker">Исследователь:</span>
+                                <span class="text">Расскажите, как вы раньше жили?</span>
+                            </div>
+                            <div class="dialog-line informant">
+                                <span class="speaker">Информант:</span>
+                                <span class="text">Ну, я вам расскажу про нашу деревню. Мы раньше совсем по-другому жили. <mark>Дак вот</mark>, мы в лес ходили часто. Ягоды собирать надо было. Черника, брусника. Это у нас как заготовка на зиму.</span>
+                            </div>
+                            <div class="dialog-line researcher">
+                                <span class="speaker">Исследователь:</span>
+                                <span class="text">А праздники какие отмечали?</span>
+                            </div>
+                            <div class="dialog-line informant">
+                                <span class="speaker">Информант:</span>
+                                <span class="text">Ой, много праздников было. <mark>Гербер</mark> вот удмуртский. После сева отмечали. Кашу варили в большом котле. Всей деревней собирались. Песни пели. <mark>Красиво было так-то.</mark></span>
+                            </div>
+                        </div>
+                        <div class="dialog-analysis">
+                            <p><strong>🔍 Лингвистический комментарий:</strong></p>
+                            <ul>
+                                <li><strong>«Дак вот»</strong> — дискурсивный маркер, характерный для региональной речи</li>
+                                <li><strong>«Гербер»</strong> — удмуртское заимствование (национальный праздник)</li>
+                                <li><strong>«Красиво было так-то»</strong> — частица «так-то» в усилительном значении</li>
+                                <li>Порядок слов: «в лес ходили часто» (обстоятельство перед глаголом)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Межпоколенческая передача -->
+            <section class="text-block">
+                <h2>👨‍👩‍👧‍👦 Межпоколенческая передача языка</h2>
+
+                <div class="generations-grid">
+                    <div class="generation-card senior">
+                        <h3>👴 Старшее поколение (60+)</h3>
+                        <ul>
+                            <li>Свободное владение удмуртским языком</li>
+                            <li>Удмуртский — основной язык бытового общения</li>
+                            <li>Русский язык с заметной интерференцией</li>
+                            <li>Хранители традиционной культуры и фольклора</li>
+                        </ul>
+                    </div>
+
+                    <div class="generation-card middle">
+                        <h3>👨 Среднее поколение (30-60 лет)</h3>
+                        <ul>
+                            <li>Хорошее владение обоими языками</li>
+                            <li>Удмуртский — в семье и с родителями</li>
+                            <li>Русский — на работе и в официальной сфере</li>
+                            <li>Частое переключение кодов в речи</li>
+                        </ul>
+                    </div>
+
+                    <div class="generation-card young">
+                        <h3>👧 Молодое поколение (до 30 лет)</h3>
+                        <ul>
+                            <li>Русский язык доминирует в большинстве сфер</li>
+                            <li>Удмуртский — преимущественно с бабушками/дедушками</li>
+                            <li>Понимание удмуртского лучше, чем говорение</li>
+                            <li>Тенденция к сужению сфер использования удмуртского</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="warning-note">
+                    <p>⚠️ <strong>Языковой сдвиг:</strong> Наблюдается постепенное сокращение использования удмуртского языка среди молодежи, что характерно для многих миноритарных языков России. Документирование современного состояния речи особенно важно для сохранения языкового наследия.</p>
+                </div>
+            </section>
+
+            <!-- Значимость изучения -->
+            <section class="text-block highlight-block">
+                <h2>🔬 Научная значимость изучения билингвизма д. Пазял</h2>
+
+                <div class="significance-points">
+                    <div class="sig-point">
+                        <span class="sig-icon">📖</span>
+                        <div>
+                            <h4>Теоретическая ценность</h4>
+                            <p>Изучение русской речи билингвов позволяет выявить универсальные механизмы языковой интерференции, закономерности контактирования разноструктурных языков (славянского и финно-угорского).</p>
+                        </div>
+                    </div>
+
+                    <div class="sig-point">
+                        <span class="sig-icon">🎓</span>
+                        <div>
+                            <h4>Практическое применение</h4>
+                            <p>Результаты могут использоваться в преподавании русского языка как неродного, при разработке учебных программ для национальных регионов, в социолингвистических исследованиях.</p>
+                        </div>
+                    </div>
+
+                    <div class="sig-point">
+                        <span class="sig-icon">💾</span>
+                        <div>
+                            <h4>Сохранение наследия</h4>
+                            <p>Фиксация современного состояния удмуртско-русского двуязычия создает документальную базу для будущих диахронических исследований языковой ситуации в регионе.</p>
+                        </div>
+                    </div>
+
+                    <div class="sig-point">
+                        <span class="sig-icon">🌍</span>
+                        <div>
+                            <h4>Типологическая ценность</h4>
+                            <p>Данные по удмуртско-русскому билингвизму вносят вклад в мировую типологию языковых контактов и позволяют проводить сравнительные исследования с другими билингвальными регионами.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Подвал -->
+    <footer class="footer-simple">
+        <div class="container">
+            <p>© 2026 Русская речь билингвов д. Пазял</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
