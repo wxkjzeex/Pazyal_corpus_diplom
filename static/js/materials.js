@@ -325,12 +325,16 @@ function saveMaterialLocallyFromForm() {
 // ТРАНСКРИБАЦИЯ (GOOGLE SPEECH API ИЗ ФАЙЛА)
 // ============================================
 
+// Инициализация обработчиков для транскрибации
 function initTranscriptionHandlers() {
     const transcribeBtn = document.getElementById('startTranscribeBtn');
+
     if (transcribeBtn) {
         transcribeBtn.addEventListener('click', transcribeAudioFile);
+        console.log('✅ Кнопка транскрибации найдена');
+    } else {
+        console.warn('⚠️ Кнопка startTranscribeBtn не найдена');
     }
-    console.log('✅ Обработчики транскрибации инициализированы');
 }
 
 async function transcribeAudioFile() {
@@ -793,27 +797,196 @@ function changePage(delta) {
     window.scrollTo({ top: 400, behavior: 'smooth' });
 }
 
+// Просмотр материала — модальное окно с полной информацией
 function viewMaterial(id) {
     const material = materialsData.find(m => m.id === id);
-    if (!material) { alert('Материал не найден'); return; }
-    alert(`
-📋 Материал #${String(id).padStart(3, '0')}
+    if (!material) {
+        showNotification('Материал не найден', 'error');
+        return;
+    }
 
-👤 Информант:
-   Возраст: ${material.informant.age} лет
-   Пол: ${material.informant.gender}
-   Образование: ${material.informant.education}
-   Родной язык: ${material.informant.nativeLanguage}
-   Уровень русского: ${material.informant.russianLevel}
+    // Форматируем дату
+    const formattedDate = formatDate(material.record.date);
 
-📝 Запись:
-   Дата: ${formatDate(material.record.date)}
-   Место: ${material.record.location}
-   Тема: ${material.record.topic}
+    // Определяем иконки медиа
+    const audioIcon = material.media?.hasAudio ? '✅' : '❌';
+    const videoIcon = material.media?.hasVideo ? '✅' : '❌';
+    const transcriptionIcon = material.transcription?.full ? '✅' : '❌';
 
-📖 Транскрипция:
-${material.transcription.full || 'Не добавлена'}
-    `);
+    // Блок с аудиоплеером
+    let audioPlayerHTML = '';
+    if (material.media?.hasAudio) {
+        const audioPath = material.media.audioPath || '';
+        const audioFileName = material.media.audioFileName || 'Аудиозапись';
+        const fullAudioPath = audioPath.startsWith('blob:')
+            ? audioPath
+            : (audioPath.startsWith('/') ? audioPath : '/static/' + audioPath);
+
+        audioPlayerHTML = `
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px;">
+                <h4 style="margin-bottom: 10px;">🎵 Аудиозапись</h4>
+                <p style="font-size: 13px; color: #666; margin-bottom: 10px;">📁 ${audioFileName}</p>
+                <audio controls style="width: 100%; margin-bottom: 10px;">
+                    <source src="${fullAudioPath}" type="audio/mpeg">
+                    Ваш браузер не поддерживает аудиоплеер.
+                </audio>
+                <p style="font-size: 12px; color: #999;">📍 д. Пазял, Можгинский район</p>
+            </div>
+        `;
+    }
+
+    // Блок с транскрипцией
+    let transcriptionHTML = '';
+    if (material.transcription?.full) {
+        transcriptionHTML = `
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px;">
+                <h4 style="margin-bottom: 10px;">📝 Транскрипция</h4>
+                <div style="max-height: 200px; overflow-y: auto; line-height: 1.8; font-size: 14px; color: #444; white-space: pre-wrap;">
+                    ${escapeHTML(material.transcription.full)}
+                </div>
+            </div>
+        `;
+    }
+
+    // Создаём модальное окно
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay detail-modal-overlay';
+    modal.id = 'detailModal';
+
+    modal.innerHTML = `
+        <div class="detail-modal">
+            <button class="modal-close" id="closeDetailModal">&times;</button>
+
+            <div class="detail-header">
+                <span class="detail-id">Материал #${String(id).padStart(3, '0')}</span>
+                <span class="detail-date">📅 ${formattedDate}</span>
+            </div>
+
+            <h3 class="detail-topic">${material.record.topic}</h3>
+
+            <!-- Информация об информанте -->
+            <div class="detail-section">
+                <h4>👤 Информация об информанте</h4>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Возраст:</span>
+                        <span class="detail-value">${material.informant.age} лет</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Пол:</span>
+                        <span class="detail-value">${material.informant.gender === 'женский' ? '👩 Женский' : '👨 Мужской'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Образование:</span>
+                        <span class="detail-value">${material.informant.education}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Родной язык:</span>
+                        <span class="detail-value">${material.informant.nativeLanguage}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Уровень русского:</span>
+                        <span class="detail-value">${material.informant.russianLevel}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Параметры записи -->
+            <div class="detail-section">
+                <h4>📋 Параметры записи</h4>
+                <div class="detail-grid">
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Дата записи:</span>
+                        <span class="detail-value">${formattedDate}</span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Место записи:</span>
+                        <span class="detail-value">${material.record.location}</span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Длительность:</span>
+                        <span class="detail-value">${material.record.duration || 'не указана'}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Медиа -->
+            <div class="detail-section">
+                <h4>📁 Медиафайлы</h4>
+                <div class="media-status">
+                    <span>🎵 Аудио: ${audioIcon}</span>
+                    <span>🎥 Видео: ${videoIcon}</span>
+                    <span>📝 Транскрипция: ${transcriptionIcon}</span>
+                </div>
+            </div>
+
+            <!-- Аудиоплеер -->
+            ${audioPlayerHTML}
+
+            <!-- Транскрипция -->
+            ${transcriptionHTML}
+
+            <!-- Метаданные (если есть) -->
+            ${material.metadata ? `
+            <div class="detail-section">
+                <h4>⚙️ Метаданные</h4>
+                <div class="detail-grid">
+                    ${material.metadata.equipment ? `
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Оборудование:</span>
+                        <span class="detail-value">${material.metadata.equipment}</span>
+                    </div>` : ''}
+                    ${material.metadata.noiseLevel ? `
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Уровень шума:</span>
+                        <span class="detail-value">${material.metadata.noiseLevel}</span>
+                    </div>` : ''}
+                    ${material.metadata.transcriber ? `
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Расшифровщик:</span>
+                        <span class="detail-value">${material.metadata.transcriber}</span>
+                    </div>` : ''}
+                </div>
+            </div>` : ''}
+
+            <div class="detail-footer">
+                <button class="btn btn-primary" onclick="document.getElementById('detailModal').remove()">
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Закрытие по клику на фон
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+        }
+    });
+
+    // Закрытие по кнопке
+    modal.querySelector('#closeDetailModal').addEventListener('click', function() {
+        modal.remove();
+    });
+
+    // Закрытие по Escape
+    const escHandler = function(e) {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// Экранирование HTML
+function escapeHTML(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function showNotification(message, type = 'info') {

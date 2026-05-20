@@ -1,14 +1,9 @@
-// Основной JavaScript для главной страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Русская речь д. Пазял');
-});
+// js/main.js
 
-// Автоматическое выделение активной страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // Получаем текущий URL
+    // Автоматическое выделение активной страницы
     const currentPath = window.location.pathname;
 
-    // Определяем текущую страницу
     let currentPage = 'index';
 
     if (currentPath.includes('about-village')) {
