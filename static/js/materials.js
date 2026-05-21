@@ -1,6 +1,5 @@
 // ============================================
 // js/materials.js — Финальная версия
-// Транскрипция через Google Speech API из файла
 // ============================================
 
 const API_URL = '/api';
@@ -8,7 +7,6 @@ const API_URL = '/api';
 let materialsData = [];
 let filteredData = [];
 let currentPage = 1;
-let currentAudioFile = null;
 let audioObjectURL = null;
 const itemsPerPage = 6;
 let isTranscribing = false;
@@ -20,7 +18,6 @@ let isTranscribing = false;
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📄 Страница материалов загружена');
-
     initAudioPreview();
     initTranscriptionHandlers();
     loadMaterials();
@@ -31,6 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeAudioPlayer();
+        const detailModal = document.getElementById('detailModal');
+        if (detailModal) detailModal.remove();
     }
 });
 
@@ -42,12 +41,11 @@ document.addEventListener('keydown', function(e) {
 function initEventListeners() {
     console.log('🔧 Инициализация обработчиков...');
 
-    initAudioPreview();
-
     const showFormBtn = document.getElementById('showAddFormBtn');
     if (showFormBtn) {
         showFormBtn.addEventListener('click', function(e) {
             e.preventDefault();
+            resetFormState();
             showAddForm();
         });
     }
@@ -56,29 +54,22 @@ function initEventListeners() {
     if (emptyAddBtn) {
         emptyAddBtn.addEventListener('click', function(e) {
             e.preventDefault();
+            resetFormState();
             showAddForm();
         });
     }
 
     const closeFormBtn = document.getElementById('closeFormBtn');
-    if (closeFormBtn) {
-        closeFormBtn.addEventListener('click', hideAddForm);
-    }
+    if (closeFormBtn) closeFormBtn.addEventListener('click', hideAddForm);
 
     const cancelFormBtn = document.getElementById('cancelFormBtn');
-    if (cancelFormBtn) {
-        cancelFormBtn.addEventListener('click', hideAddForm);
-    }
+    if (cancelFormBtn) cancelFormBtn.addEventListener('click', hideAddForm);
 
     const addForm = document.getElementById('addMaterialForm');
-    if (addForm) {
-        addForm.addEventListener('submit', handleFormSubmit);
-    }
+    if (addForm) addForm.addEventListener('submit', handleFormSubmit);
 
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
-    }
+    if (searchInput) searchInput.addEventListener('input', handleSearch);
 
     const genderFilter = document.getElementById('genderFilter');
     const ageFilter = document.getElementById('ageFilter');
@@ -136,10 +127,6 @@ async function loadStats() {
         }
     } catch (error) {
         console.error('Ошибка загрузки статистики:', error);
-        document.getElementById('totalRecords').textContent = '0';
-        document.getElementById('totalInformants').textContent = '0';
-        document.getElementById('avgAge').textContent = '0';
-        document.getElementById('totalDuration').textContent = '0:00';
     }
 }
 
@@ -148,32 +135,15 @@ function loadDemoData() {
     materialsData = [
         {
             id: 1,
-            informant: {
-                age: 67,
-                gender: 'женский',
-                education: 'среднее',
-                nativeLanguage: 'удмуртский',
-                russianLevel: 'свободное владение'
-            },
-            record: {
-                date: '2024-03-15',
-                location: 'д. Пазял, дом информанта',
-                topic: 'Воспоминания о детстве',
-                duration: '30:15'
-            },
-            transcription: {
-                preview: 'Ну, я вам расскажу про нашу деревню. Мы раньше совсем по-другому жили...',
-                full: '[00:00] Информант: Ну, я вам расскажу про нашу деревню...'
-            },
-            media: {
-                hasAudio: true,
-                hasVideo: false
-            }
+            informant: { age: 67, gender: 'женский', education: 'среднее', nativeLanguage: 'удмуртский', russianLevel: 'свободное владение' },
+            record: { date: '2024-03-15', location: 'д. Пазял, дом информанта', topic: 'Воспоминания о детстве', duration: '30:15' },
+            transcription: { preview: 'Ну, я вам расскажу про нашу деревню...', full: '[00:00] Информант: Ну, я вам расскажу...' },
+            media: { hasAudio: true, hasVideo: false },
+            metadata: { equipment: 'Диктофон Zoom H4n', noiseLevel: 'низкий', transcriber: 'А.В. Чирков' }
         }
     ];
     filteredData = [...materialsData];
     renderMaterials();
-    updateStatsLocally();
 }
 
 
@@ -186,7 +156,6 @@ function showAddForm() {
     if (formSection) {
         formSection.style.display = 'block';
         formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        console.log('📝 Форма открыта');
     }
 }
 
@@ -195,15 +164,22 @@ function hideAddForm() {
     if (formSection) {
         formSection.style.display = 'none';
         document.getElementById('addMaterialForm').reset();
-
-        // Скрываем превью аудио
-        const audioPreview = document.getElementById('audioPreview');
-        const liveTranscript = document.getElementById('liveTranscript');
-        if (audioPreview) audioPreview.style.display = 'none';
-        if (liveTranscript) liveTranscript.style.display = 'none';
-
-        console.log('📝 Форма закрыта');
+        document.getElementById('audioPreview').style.display = 'none';
+        document.getElementById('videoPreview').style.display = 'none';
+        document.getElementById('liveTranscript').style.display = 'none';
     }
+}
+
+function resetFormState() {
+    const form = document.getElementById('addMaterialForm');
+    form.reset();
+    delete form.dataset.editId;
+    document.querySelector('#addMaterialSection .section-header h3').textContent = '➕ Добавление нового материала';
+    document.querySelector('#addMaterialForm button[type="submit"]').textContent = '💾 Сохранить материал';
+    document.getElementById('audioPreview').style.display = 'none';
+    document.getElementById('videoPreview').style.display = 'none';
+    document.getElementById('liveTranscript').style.display = 'none';
+    document.getElementById('transcribeStatus').textContent = '';
 }
 
 async function handleFormSubmit(e) {
@@ -212,37 +188,21 @@ async function handleFormSubmit(e) {
 
     const form = e.target;
     const formData = new FormData(form);
+    const editId = form.dataset.editId;
 
-    const age = document.getElementById('informantAge')?.value;
-    const gender = document.getElementById('informantGender')?.value;
-    const education = document.getElementById('informantEducation')?.value;
-    const nativeLanguage = document.getElementById('nativeLanguage')?.value;
-    const russianLevel = document.getElementById('russianLevel')?.value;
-    const recordDate = document.getElementById('recordDate')?.value;
-    const location = document.getElementById('recordLocation')?.value;
-    const topic = document.getElementById('recordTopic')?.value;
+    // Проверка полей
+    const fields = ['informantAge', 'informantGender', 'informantEducation', 'nativeLanguage', 'russianLevel', 'recordDate', 'recordLocation', 'recordTopic'];
+    const names = ['возраст', 'пол', 'образование', 'родной язык', 'уровень русского', 'дата записи', 'место записи', 'тема'];
+    const missing = [];
 
-    const requiredFields = [
-        { name: 'возраст', value: age },
-        { name: 'пол', value: gender },
-        { name: 'образование', value: education },
-        { name: 'родной язык', value: nativeLanguage },
-        { name: 'уровень русского', value: russianLevel },
-        { name: 'дата записи', value: recordDate },
-        { name: 'место записи', value: location },
-        { name: 'тема', value: topic }
-    ];
+    fields.forEach((id, i) => {
+        const el = document.getElementById(id);
+        if (!el || !el.value || el.value.trim() === '') missing.push(names[i]);
+    });
 
-    const missingFields = requiredFields.filter(f => !f.value || f.value.trim() === '');
-    if (missingFields.length > 0) {
-        const missingNames = missingFields.map(f => f.name).join(', ');
-        alert(`Пожалуйста, заполните обязательные поля:\n${missingNames}`);
+    if (missing.length > 0) {
+        alert(`Пожалуйста, заполните обязательные поля:\n${missing.join(', ')}`);
         return;
-    }
-
-    const audioFile = formData.get('audioFile');
-    if (audioFile && audioFile.name) {
-        console.log('✅ Аудиофайл:', audioFile.name, `(${Math.round(audioFile.size / 1024)} КБ)`);
     }
 
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -251,89 +211,88 @@ async function handleFormSubmit(e) {
     submitBtn.disabled = true;
 
     try {
-        const response = await fetch(`${API_URL}/materials`, {
-            method: 'POST',
+        let url = `${API_URL}/materials`;
+        let method = 'POST';
+
+        if (editId) {
+            // Для редактирования используем POST с _method=PUT
+            url = `${API_URL}/materials/${editId}`;
+            formData.append('_method', 'PUT');
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',  // Всегда POST, сервер сам разберет по _method
             body: formData
         });
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Сервер вернул не JSON:', text);
+            throw new Error('Сервер вернул ошибку');
+        }
 
         const result = await response.json();
 
         if (result.success) {
-            alert(`✅ Материал успешно сохранен!\nID записи: ${result.record_id || 'N/A'}`);
+            alert(editId ? '✅ Материал обновлен!' : '✅ Материал сохранен!');
             hideAddForm();
+            resetFormState();
             await loadMaterials();
             await loadStats();
         } else {
-            alert(`❌ Ошибка сохранения: ${result.error}\n\nМатериал будет сохранен локально.`);
-            saveMaterialLocallyFromForm();
+            alert(`❌ Ошибка: ${result.error}`);
         }
     } catch (error) {
-        alert('❌ Не удалось подключиться к серверу.\n\nМатериал будет сохранен локально.');
-        saveMaterialLocallyFromForm();
+        console.error('Ошибка:', error);
+        alert('❌ Не удалось сохранить материал.');
     } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
 }
 
-function saveMaterialLocallyFromForm() {
-    const newMaterial = {
-        id: materialsData.length + 1,
-        informant: {
-            age: parseInt(document.getElementById('informantAge')?.value) || 0,
-            gender: document.getElementById('informantGender')?.value || 'женский',
-            education: document.getElementById('informantEducation')?.value || 'среднее',
-            nativeLanguage: document.getElementById('nativeLanguage')?.value || 'удмуртский',
-            russianLevel: document.getElementById('russianLevel')?.value || 'свободное владение'
-        },
-        record: {
-            date: document.getElementById('recordDate')?.value || new Date().toISOString().split('T')[0],
-            location: document.getElementById('recordLocation')?.value || 'д. Пазял',
-            topic: document.getElementById('recordTopic')?.value || 'Без темы',
-            duration: '00:00'
-        },
-        transcription: {
-            preview: (document.getElementById('transcription')?.value || '').substring(0, 150) + '...',
-            full: document.getElementById('transcription')?.value || ''
-        },
-        media: {
-            hasAudio: document.getElementById('audioFile')?.files.length > 0,
-            hasVideo: false,
-            audioFileName: document.getElementById('audioFile')?.files[0]?.name || '',
-            audioPath: document.getElementById('audioFile')?.files.length > 0
-                ? URL.createObjectURL(document.getElementById('audioFile').files[0])
-                : null
-        },
-        metadata: {
-            equipment: document.getElementById('equipment')?.value || '',
-            noiseLevel: document.getElementById('noiseLevel')?.value || 'низкий',
-            transcriber: document.getElementById('transcriber')?.value || ''
-        }
-    };
 
-    materialsData.push(newMaterial);
-    filteredData = [...materialsData];
-    hideAddForm();
-    renderMaterials();
-    updateStatsLocally();
+// ============================================
+// РЕДАКТИРОВАНИЕ МАТЕРИАЛА
+// ============================================
 
-    alert(`✅ Материал сохранен локально!\n\nВсего материалов: ${materialsData.length}`);
+async function editMaterial(id) {
+    const material = materialsData.find(m => m.id === id);
+    if (!material) {
+        showNotification('Материал не найден', 'error');
+        return;
+    }
+
+    document.getElementById('informantAge').value = material.informant.age;
+    document.getElementById('informantGender').value = material.informant.gender;
+    document.getElementById('informantEducation').value = material.informant.education;
+    document.getElementById('nativeLanguage').value = material.informant.nativeLanguage;
+    document.getElementById('russianLevel').value = material.informant.russianLevel;
+    document.getElementById('recordDate').value = material.record.date;
+    document.getElementById('recordLocation').value = material.record.location;
+    document.getElementById('recordTopic').value = material.record.topic;
+    document.getElementById('transcription').value = material.transcription.full || '';
+    document.getElementById('transcriber').value = material.metadata?.transcriber || '';
+    document.getElementById('equipment').value = material.metadata?.equipment || '';
+    document.getElementById('noiseLevel').value = material.metadata?.noiseLevel || 'низкий';
+
+    document.querySelector('#addMaterialSection .section-header h3').textContent = `✏️ Редактирование #${String(id).padStart(3, '0')}`;
+    document.querySelector('#addMaterialForm button[type="submit"]').textContent = '💾 Обновить материал';
+    document.getElementById('addMaterialForm').dataset.editId = id;
+
+    showAddForm();
 }
 
 
 // ============================================
-// ТРАНСКРИБАЦИЯ (GOOGLE SPEECH API ИЗ ФАЙЛА)
+// ТРАНСКРИБАЦИЯ
 // ============================================
 
-// Инициализация обработчиков для транскрибации
 function initTranscriptionHandlers() {
     const transcribeBtn = document.getElementById('startTranscribeBtn');
-
     if (transcribeBtn) {
         transcribeBtn.addEventListener('click', transcribeAudioFile);
-        console.log('✅ Кнопка транскрибации найдена');
-    } else {
-        console.warn('⚠️ Кнопка startTranscribeBtn не найдена');
     }
 }
 
@@ -346,146 +305,64 @@ async function transcribeAudioFile() {
     const liveBlock = document.getElementById('liveTranscript');
     const liveText = document.getElementById('liveTranscriptText');
 
-    // Проверка наличия файла
     if (!audioInput || !audioInput.files || audioInput.files.length === 0) {
-        showNotification('❌ Сначала выберите аудиофайл для распознавания', 'error');
+        showNotification('❌ Сначала выберите аудиофайл', 'error');
         return;
     }
 
     const audioFile = audioInput.files[0];
 
-    // Проверка размера
     if (audioFile.size > 10 * 1024 * 1024) {
-        showNotification('❌ Файл слишком большой. Максимальный размер: 10 МБ', 'error');
+        showNotification('❌ Файл слишком большой. Максимум 10 МБ', 'error');
         return;
     }
 
-    // Проверка формата
-    const allowedExtensions = ['.mp3', '.wav', '.flac', '.ogg', '.opus', '.webm', '.m4a', '.aac'];
-    const isValidFormat = allowedExtensions.some(ext => audioFile.name.toLowerCase().endsWith(ext));
-    if (!isValidFormat) {
-        showNotification('❌ Неподдерживаемый формат. Используйте MP3, WAV, FLAC, OGG, M4A', 'error');
-        return;
-    }
-
-    // Блокируем кнопку
     isTranscribing = true;
     transcribeBtn.disabled = true;
-    transcribeBtn.innerHTML = '⏳ Идёт распознавание...';
+    transcribeBtn.innerHTML = '⏳ Распознавание...';
 
-    if (statusEl) {
-        statusEl.textContent = '🎙️ Отправка аудиофайла на сервер...';
-        statusEl.style.color = '#3498db';
-    }
-
-    if (liveBlock) {
-        liveBlock.style.display = 'block';
-        liveText.innerHTML = `
-            <div class="transcribe-progress">
-                <div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div>
-            </div>
-            <p style="text-align: center; color: #666;">📤 Отправка файла "${audioFile.name}"...</p>
-        `;
-    }
+    if (statusEl) { statusEl.textContent = '🎙️ Отправка...'; statusEl.style.color = '#3498db'; }
+    if (liveBlock) { liveBlock.style.display = 'block'; liveText.innerHTML = '<p style="text-align:center;color:#666;">⏳ Идет распознавание речи...</p>'; }
 
     try {
         const formData = new FormData();
         formData.append('audioFile', audioFile);
 
-        if (statusEl) {
-            statusEl.textContent = '🎙️ Идёт распознавание речи...';
-            statusEl.style.color = '#e67e22';
-        }
-
-        if (liveText) {
-            liveText.innerHTML = `
-                <div class="transcribe-progress">
-                    <div class="progress-bar"><div class="progress-fill" style="width: 100%"></div></div>
-                </div>
-                <p style="text-align: center; color: #666;">🎙️ Google Speech API обрабатывает аудио...</p>
-            `;
-        }
-
-        const response = await fetch('/api/transcribe', {
-            method: 'POST',
-            body: formData
-        });
-
+        const response = await fetch('/api/transcribe', { method: 'POST', body: formData });
         const result = await response.json();
 
         if (result.success) {
             if (transcriptionField) transcriptionField.value = result.transcript;
-            if (transcriberField) {
-                transcriberField.value = result.demo
-                    ? 'Демо-режим (требуется API ключ)'
-                    : 'Google Speech-to-Text API (автоматически)';
-            }
+            if (transcriberField) transcriberField.value = result.demo ? 'Демо-режим' : `Whisper (авто)`;
 
             if (liveText) {
                 liveText.innerHTML = `
-                    <p style="color: #27ae60; font-size: 16px;">✅ Распознавание завершено!</p>
-                    <div style="margin-top: 10px; color: #555;">
-                        <p>📝 Фрагментов: <strong>${result.fragments}</strong></p>
-                        <p>🎯 Точность: <strong>${result.confidence}%</strong></p>
-                    </div>
-                    ${result.demo ? `
-                        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #ffc107;">
-                            <p style="color: #856404; margin: 0;">⚠️ <strong>Демо-режим</strong></p>
-                            <p style="color: #856404; margin: 10px 0 0 0; font-size: 13px;">Настройте GOOGLE_SPEECH_API_KEY в файле .env</p>
-                        </div>
-                    ` : ''}
-                    <p style="margin-top: 15px; font-style: italic; color: #666;">Текст добавлен в поле транскрипции.</p>
+                    <p style="color:#27ae60;">✅ Распознано ${result.fragments} фрагментов</p>
+                    <p style="color:#666;">Точность: ${result.confidence}%</p>
+                    ${result.demo ? '<p style="color:#e67e22;">⚠️ Демо-режим</p>' : ''}
                 `;
             }
-
-            if (statusEl) {
-                statusEl.textContent = `✅ Распознано (точность: ${result.confidence}%)`;
-                statusEl.style.color = '#27ae60';
-            }
-
-            showNotification(`✅ Речь распознана! Фрагментов: ${result.fragments}`, 'success');
+            if (statusEl) { statusEl.textContent = '✅ Готово'; statusEl.style.color = '#27ae60'; }
+            showNotification('✅ Речь распознана!', 'success');
         } else {
-            throw new Error(result.error || 'Ошибка распознавания');
+            throw new Error(result.error || 'Ошибка');
         }
     } catch (error) {
-        console.error('❌ Ошибка транскрибации:', error);
-
-        if (liveText) {
-            liveText.innerHTML = `
-                <p style="color: #e74c3c; font-size: 16px;">❌ Ошибка распознавания</p>
-                <p style="color: #666;">${error.message}</p>
-                <div style="margin-top: 15px; background: #fdf2f2; padding: 15px; border-radius: 8px;">
-                    <p style="color: #721c24; margin: 0; font-weight: 500;">Рекомендации:</p>
-                    <ul style="color: #721c24; margin: 10px 0 0 0; padding-left: 20px;">
-                        <li>Проверьте формат файла (MP3, WAV, FLAC)</li>
-                        <li>Размер файла не должен превышать 10 МБ</li>
-                        <li>Убедитесь, что в аудио есть речь на русском языке</li>
-                    </ul>
-                </div>
-            `;
-        }
-
-        if (statusEl) {
-            statusEl.textContent = `❌ ${error.message}`;
-            statusEl.style.color = '#e74c3c';
-        }
-
-        showNotification(`❌ Ошибка: ${error.message}`, 'error');
+        console.error('❌ Ошибка:', error);
+        if (liveText) liveText.innerHTML = `<p style="color:#e74c3c;">❌ ${error.message}</p>`;
+        if (statusEl) { statusEl.textContent = '❌ Ошибка'; statusEl.style.color = '#e74c3c'; }
+        showNotification(`❌ ${error.message}`, 'error');
     } finally {
         isTranscribing = false;
         transcribeBtn.disabled = false;
         transcribeBtn.innerHTML = '🎤 Распознать речь из аудиофайла';
-
-        setTimeout(() => {
-            if (liveBlock && !isTranscribing) liveBlock.style.display = 'none';
-            if (statusEl && statusEl.style.color === 'rgb(39, 174, 96)') statusEl.textContent = '';
-        }, 10000);
+        setTimeout(() => { if (liveBlock && !isTranscribing) liveBlock.style.display = 'none'; }, 8000);
     }
 }
 
 
 // ============================================
-// АУДИОПРЕВЬЮ В ФОРМЕ
+// АУДИО/ВИДЕО ПРЕДПРОСМОТР
 // ============================================
 
 function initAudioPreview() {
@@ -496,32 +373,55 @@ function initAudioPreview() {
     const audioFileSize = document.getElementById('audioFileSize');
     const audioPlaceholder = document.getElementById('audioPlaceholder');
 
-    if (!audioInput) return;
+    if (audioInput) {
+        audioInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                if (audioObjectURL) URL.revokeObjectURL(audioObjectURL);
+                audioObjectURL = URL.createObjectURL(file);
+                audioPlayer.src = audioObjectURL;
+                if (audioFileName) audioFileName.textContent = file.name;
+                if (audioFileSize) audioFileSize.textContent = formatFileSize(file.size);
+                if (audioPlaceholder) audioPlaceholder.textContent = '✅ Файл выбран';
+                if (audioPreview) audioPreview.style.display = 'block';
+            } else {
+                if (audioPreview) audioPreview.style.display = 'none';
+                if (audioPlaceholder) audioPlaceholder.textContent = 'Выберите аудиофайл (MP3, WAV)';
+            }
+        });
+    }
 
-    audioInput.addEventListener('change', function() {
-        const file = this.files[0];
+    const videoInput = document.getElementById('videoFile');
+    const videoPreview = document.getElementById('videoPreview');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoPlaceholder = document.getElementById('videoPlaceholder');
 
-        if (file) {
-            if (audioObjectURL) URL.revokeObjectURL(audioObjectURL);
-            audioObjectURL = URL.createObjectURL(file);
-            audioPlayer.src = audioObjectURL;
-            if (audioFileName) audioFileName.textContent = file.name;
-            if (audioFileSize) audioFileSize.textContent = formatFileSize(file.size);
-            if (audioPlaceholder) audioPlaceholder.textContent = '✅ Файл выбран';
-            if (audioPreview) audioPreview.style.display = 'block';
-        } else {
-            if (audioPreview) audioPreview.style.display = 'none';
-            if (audioPlaceholder) audioPlaceholder.textContent = 'Выберите аудиофайл (MP3, WAV, FLAC)';
-        }
-    });
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Б';
-    const k = 1024;
-    const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    if (videoInput) {
+        videoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const allowed = ['mp4', 'avi', 'mov', 'mkv', 'webm'];
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (!allowed.includes(ext)) {
+                    alert('Формат не поддерживается. Используйте MP4, AVI, MOV, MKV.');
+                    this.value = '';
+                    return;
+                }
+                if (file.size > 200 * 1024 * 1024) {
+                    alert('Файл слишком большой. Максимум 200 МБ.');
+                    this.value = '';
+                    return;
+                }
+                const videoURL = URL.createObjectURL(file);
+                videoPlayer.src = videoURL;
+                if (videoPreview) videoPreview.style.display = 'block';
+                if (videoPlaceholder) videoPlaceholder.textContent = '✅ Видеофайл выбран: ' + file.name;
+            } else {
+                if (videoPreview) videoPreview.style.display = 'none';
+                if (videoPlaceholder) videoPlaceholder.textContent = 'Выберите видеофайл (MP4, AVI, MOV, MKV)';
+            }
+        });
+    }
 }
 
 
@@ -584,7 +484,7 @@ function updateActiveFilters() {
 
 
 // ============================================
-// ОТРИСОВКА МАТЕРИАЛОВ
+// ОТРИСОВКА КАРТОЧЕК
 // ============================================
 
 function renderMaterials() {
@@ -612,9 +512,7 @@ function renderMaterials() {
     updatePagination(totalPages);
 
     document.querySelectorAll('.view-material-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            viewMaterial(parseInt(this.dataset.id));
-        });
+        btn.addEventListener('click', function() { viewMaterial(parseInt(this.dataset.id)); });
     });
 }
 
@@ -624,32 +522,35 @@ function createMaterialCard(material) {
     if (material.media?.hasVideo) mediaIcons.push('🎥');
     if (material.transcription?.full) mediaIcons.push('📝');
 
-    // Форматируем длительность
     const duration = material.record.duration || '00:00';
 
+    // Аудиоплеер
     let audioSection = '';
     if (material.media?.hasAudio) {
         const audioPath = material.media.audioPath || '';
         const audioFileName = material.media.audioFileName || 'Аудиозапись';
         const safeTopic = (material.record.topic || '').replace(/'/g, "\\'");
         const safeFileName = audioFileName.replace(/'/g, "\\'");
-
         audioSection = `
             <div class="card-audio-section">
-                <div class="card-audio-label">
-                    <span>🎵</span>
-                    <span>${audioFileName.length > 30 ? audioFileName.substring(0, 30) + '...' : audioFileName}</span>
-                </div>
-                <button class="play-audio-btn" onclick="openAudioPlayer('${audioPath}', '${safeTopic}', '${safeFileName}')">
-                    ▶ Прослушать запись
-                </button>
+                <div class="card-audio-label"><span>🎵</span><span>${audioFileName.substring(0, 30)}${audioFileName.length > 30 ? '...' : ''}</span></div>
+                <button class="play-audio-btn" onclick="openAudioPlayer('${audioPath}', '${safeTopic}', '${safeFileName}')">▶ Прослушать</button>
             </div>`;
     }
 
-    // Информация о видео
-    let videoBadge = '';
+    // Видеоплеер
+    let videoSection = '';
     if (material.media?.hasVideo) {
-        videoBadge = '<span class="badge-media badge-video">🎥 Видео</span>';
+        const videoPath = material.media.videoPath || '';
+        const videoFileName = material.media.videoFileName || 'Видеозапись';
+        const fullVideoPath = videoPath.startsWith('/') ? videoPath : '/static/' + videoPath;
+        videoSection = `
+            <div class="card-video-section">
+                <div class="card-video-label"><span>🎥</span><span>${videoFileName.substring(0, 30)}${videoFileName.length > 30 ? '...' : ''}</span></div>
+                <video controls style="width:100%;max-height:180px;border-radius:8px;">
+                    <source src="${fullVideoPath}" type="video/mp4">
+                </video>
+            </div>`;
     }
 
     return `
@@ -659,9 +560,7 @@ function createMaterialCard(material) {
                     <span class="card-id">#${String(material.id).padStart(3, '0')}</span>
                     <span class="card-date">${formatDate(material.record.date)}</span>
                 </div>
-                <div class="card-badges">
-                    ${mediaIcons.map(icon => `<span class="badge-media">${icon}</span>`).join('')}
-                </div>
+                <div class="card-badges">${mediaIcons.map(icon => `<span class="badge-media">${icon}</span>`).join('')}</div>
             </div>
             <div class="card-body">
                 <h4 class="card-topic">${material.record.topic}</h4>
@@ -674,80 +573,129 @@ function createMaterialCard(material) {
                 <div class="record-meta">
                     <span>📍 ${material.record.location}</span>
                     <span>⏱️ ${duration}</span>
-                    ${videoBadge}
                 </div>
                 ${audioSection}
+                ${videoSection}
             </div>
             <div class="card-footer">
                 <button class="btn-view view-material-btn" data-id="${material.id}">📖 Подробнее</button>
-                <button class="btn-delete" onclick="deleteMaterial(${material.id})">🗑️ Удалить</button>
+                <button class="btn-edit" onclick="editMaterial(${material.id})" title="Редактировать">✏️</button>
+                <button class="btn-delete" onclick="deleteMaterial(${material.id})" title="Удалить">🗑️</button>
             </div>
         </div>`;
 }
 
 
 // ============================================
-// УДАЛЕНИЕ МАТЕРИАЛА
+// ДЕТАЛЬНЫЙ ПРОСМОТР
+// ============================================
+
+function viewMaterial(id) {
+    const material = materialsData.find(m => m.id === id);
+    if (!material) { showNotification('Материал не найден', 'error'); return; }
+
+    const formattedDate = formatDate(material.record.date);
+    const audioIcon = material.media?.hasAudio ? '✅' : '❌';
+    const videoIcon = material.media?.hasVideo ? '✅' : '❌';
+    const transcriptionIcon = material.transcription?.full ? '✅' : '❌';
+
+    // Аудиоплеер в модалке
+    let audioHTML = '';
+    if (material.media?.hasAudio) {
+        const audioPath = material.media.audioPath || '';
+        const fullAudioPath = audioPath.startsWith('blob:') ? audioPath : (audioPath.startsWith('/') ? audioPath : '/static/' + audioPath);
+        audioHTML = `
+            <div style="margin-top:20px;padding:15px;background:#f8f9fa;border-radius:12px;">
+                <h4>🎵 Аудиозапись</h4>
+                <p style="font-size:13px;color:#666;">📁 ${material.media.audioFileName || ''}</p>
+                <audio controls style="width:100%;"><source src="${fullAudioPath}"></audio>
+            </div>`;
+    }
+
+    // Видеоплеер в модалке
+    let videoHTML = '';
+    if (material.media?.hasVideo) {
+        const videoPath = material.media.videoPath || '';
+        const fullVideoPath = videoPath.startsWith('/') ? videoPath : '/static/' + videoPath;
+        videoHTML = `
+            <div style="margin-top:20px;padding:15px;background:#f8f9fa;border-radius:12px;">
+                <h4>🎥 Видеозапись</h4>
+                <p style="font-size:13px;color:#666;">📁 ${material.media.videoFileName || ''}</p>
+                <video controls style="width:100%;max-height:300px;border-radius:8px;"><source src="${fullVideoPath}" type="video/mp4"></video>
+            </div>`;
+    }
+
+    // Транскрипция
+    let transcriptionHTML = '';
+    if (material.transcription?.full) {
+        transcriptionHTML = `
+            <div style="margin-top:20px;padding:15px;background:#f8f9fa;border-radius:12px;">
+                <h4>📝 Транскрипция</h4>
+                <div style="max-height:200px;overflow-y:auto;line-height:1.8;font-size:14px;white-space:pre-wrap;">${escapeHTML(material.transcription.full)}</div>
+            </div>`;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay detail-modal-overlay';
+    modal.id = 'detailModal';
+    modal.innerHTML = `
+        <div class="detail-modal">
+            <button class="modal-close" onclick="this.closest('.detail-modal-overlay').remove()">&times;</button>
+            <div class="detail-header">
+                <span class="detail-id">#${String(id).padStart(3, '0')}</span>
+                <span class="detail-date">📅 ${formattedDate}</span>
+            </div>
+            <h3 class="detail-topic">${material.record.topic}</h3>
+            <div class="detail-section">
+                <h4>👤 Информант</h4>
+                <div class="detail-grid">
+                    <div class="detail-item"><span class="detail-label">Возраст:</span><span>${material.informant.age} лет</span></div>
+                    <div class="detail-item"><span class="detail-label">Пол:</span><span>${material.informant.gender === 'женский' ? '👩 Женский' : '👨 Мужской'}</span></div>
+                    <div class="detail-item"><span class="detail-label">Образование:</span><span>${material.informant.education}</span></div>
+                    <div class="detail-item"><span class="detail-label">Родной язык:</span><span>${material.informant.nativeLanguage}</span></div>
+                    <div class="detail-item"><span class="detail-label">Уровень русского:</span><span>${material.informant.russianLevel}</span></div>
+                </div>
+            </div>
+            <div class="detail-section">
+                <h4>📋 Запись</h4>
+                <p>📍 ${material.record.location}</p>
+                <p>⏱️ ${material.record.duration || '—'}</p>
+            </div>
+            <div class="detail-section">
+                <h4>📁 Медиа</h4>
+                <p>🎵 Аудио: ${audioIcon} | 🎥 Видео: ${videoIcon} | 📝 Транскрипция: ${transcriptionIcon}</p>
+            </div>
+            ${audioHTML}
+            ${videoHTML}
+            ${transcriptionHTML}
+            <div style="padding:20px;text-align:center;">
+                <button class="btn btn-primary" onclick="document.getElementById('detailModal').remove()">Закрыть</button>
+            </div>
+        </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
+}
+
+
+// ============================================
+// УДАЛЕНИЕ
 // ============================================
 
 async function deleteMaterial(materialId) {
     const material = materialsData.find(m => m.id === materialId);
     if (!material) return;
 
-    const confirmed = await showDeleteConfirmModal(material);
-    if (!confirmed) return;
-
-    const card = document.querySelector(`.material-card[data-material-id="${materialId}"]`);
-    if (card) card.classList.add('removing');
+    if (!confirm(`Удалить материал #${String(materialId).padStart(3, '0')}?\n${material.record.topic}\n\nЭто действие нельзя отменить.`)) return;
 
     try {
         await fetch(`${API_URL}/materials/${materialId}`, { method: 'DELETE' });
-    } catch (error) {
-        console.log('Сервер недоступен, удаляем локально');
-    }
+    } catch (e) { console.log('Сервер недоступен, удаляем локально'); }
 
-    const index = materialsData.findIndex(m => m.id === materialId);
-    if (index !== -1) {
-        if (materialsData[index].media?.audioPath?.startsWith('blob:')) {
-            URL.revokeObjectURL(materialsData[index].media.audioPath);
-        }
-        materialsData.splice(index, 1);
-    }
-
+    materialsData = materialsData.filter(m => m.id !== materialId);
     filteredData = filteredData.filter(m => m.id !== materialId);
     renderMaterials();
     updateStatsLocally();
-
-    if (materialsData.length === 0) {
-        document.getElementById('emptyState').style.display = 'block';
-        document.getElementById('pagination').style.display = 'none';
-    }
-}
-
-function showDeleteConfirmModal(material) {
-    return new Promise((resolve) => {
-        const modal = document.createElement('div');
-        modal.className = 'confirm-modal-overlay';
-        modal.innerHTML = `
-            <div class="confirm-modal">
-                <div class="confirm-modal-icon">🗑️</div>
-                <h4>Удалить материал?</h4>
-                <p><strong>#${String(material.id).padStart(3, '0')}</strong><br>${material.record.topic}<br><small>${material.informant.gender === 'женский' ? '👩' : '👨'} ${material.informant.age} лет</small></p>
-                <p style="color: #e74c3c; font-size: 14px;">Это действие нельзя отменить.</p>
-                <div class="confirm-modal-actions">
-                    <button class="btn btn-danger" id="confirmDeleteBtn">🗑️ Удалить</button>
-                    <button class="btn btn-cancel" id="cancelDeleteBtn">Отмена</button>
-                </div>
-            </div>`;
-        document.body.appendChild(modal);
-
-        document.getElementById('confirmDeleteBtn').onclick = () => { modal.remove(); resolve(true); };
-        document.getElementById('cancelDeleteBtn').onclick = () => { modal.remove(); resolve(false); };
-        modal.onclick = (e) => { if (e.target === modal) { modal.remove(); resolve(false); } };
-        document.addEventListener('keydown', function escHandler(e) {
-            if (e.key === 'Escape') { modal.remove(); resolve(false); document.removeEventListener('keydown', escHandler); }
-        });
-    });
+    showNotification('✅ Материал удален', 'success');
 }
 
 
@@ -759,26 +707,21 @@ function openAudioPlayer(audioPath, topic, fileName) {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.id = 'audioModal';
-    const fullAudioPath = audioPath.startsWith('/') ? audioPath : '/static/' + audioPath;
+    const fullPath = audioPath.startsWith('blob:') ? audioPath : (audioPath.startsWith('/') ? audioPath : '/static/' + audioPath);
     modal.innerHTML = `
         <div class="modal-player">
             <button class="modal-close" onclick="closeAudioPlayer()">&times;</button>
-            <h4>🎵 ${topic || 'Прослушивание записи'}</h4>
-            <audio controls autoplay><source src="${fullAudioPath}" type="audio/mpeg"></audio>
-            <p>📁 ${fileName || 'Аудиозапись'}</p>
-            <p style="margin-top: 15px; font-size: 12px;">📍 д. Пазял, Можгинский район</p>
+            <h4>🎵 ${topic || ''}</h4>
+            <audio controls autoplay><source src="${fullPath}"></audio>
+            <p>📁 ${fileName || ''}</p>
         </div>`;
     document.body.appendChild(modal);
-    modal.addEventListener('click', function(e) { if (e.target === modal) closeAudioPlayer(); });
+    modal.addEventListener('click', e => { if (e.target === modal) closeAudioPlayer(); });
 }
 
 function closeAudioPlayer() {
     const modal = document.getElementById('audioModal');
-    if (modal) {
-        const audio = modal.querySelector('audio');
-        if (audio) { audio.pause(); audio.src = ''; }
-        modal.remove();
-    }
+    if (modal) { modal.querySelector('audio')?.pause(); modal.remove(); }
 }
 
 
@@ -787,18 +730,22 @@ function closeAudioPlayer() {
 // ============================================
 
 function updateStatsLocally() {
-    const totalRecords = materialsData.length;
-    const uniqueInformants = new Set(materialsData.map(m => `${m.informant.age}-${m.informant.gender}-${m.informant.education}`)).size;
-    const avgAge = materialsData.length > 0 ? Math.round(materialsData.reduce((sum, m) => sum + m.informant.age, 0) / materialsData.length) : 0;
-    document.getElementById('totalRecords').textContent = totalRecords;
-    document.getElementById('totalInformants').textContent = uniqueInformants;
-    document.getElementById('avgAge').textContent = avgAge;
+    document.getElementById('totalRecords').textContent = materialsData.length;
+    document.getElementById('totalInformants').textContent = new Set(materialsData.map(m => `${m.informant.age}-${m.informant.gender}`)).size;
+    document.getElementById('avgAge').textContent = materialsData.length > 0 ? Math.round(materialsData.reduce((s, m) => s + m.informant.age, 0) / materialsData.length) : 0;
 }
 
 function formatDate(dateStr) {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatFileSize(bytes) {
+    if (!bytes) return '0 Б';
+    const k = 1024;
+    const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
 function updatePagination(totalPages) {
@@ -817,191 +764,6 @@ function changePage(delta) {
     window.scrollTo({ top: 400, behavior: 'smooth' });
 }
 
-// Просмотр материала — модальное окно с полной информацией
-function viewMaterial(id) {
-    const material = materialsData.find(m => m.id === id);
-    if (!material) {
-        showNotification('Материал не найден', 'error');
-        return;
-    }
-
-    // Форматируем дату
-    const formattedDate = formatDate(material.record.date);
-
-    // Определяем иконки медиа
-    const audioIcon = material.media?.hasAudio ? '✅' : '❌';
-    const videoIcon = material.media?.hasVideo ? '✅' : '❌';
-    const transcriptionIcon = material.transcription?.full ? '✅' : '❌';
-
-    // Блок с аудиоплеером
-    let audioPlayerHTML = '';
-    if (material.media?.hasAudio) {
-        const audioPath = material.media.audioPath || '';
-        const audioFileName = material.media.audioFileName || 'Аудиозапись';
-        const fullAudioPath = audioPath.startsWith('blob:')
-            ? audioPath
-            : (audioPath.startsWith('/') ? audioPath : '/static/' + audioPath);
-
-        audioPlayerHTML = `
-            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px;">
-                <h4 style="margin-bottom: 10px;">🎵 Аудиозапись</h4>
-                <p style="font-size: 13px; color: #666; margin-bottom: 10px;">📁 ${audioFileName}</p>
-                <audio controls style="width: 100%; margin-bottom: 10px;">
-                    <source src="${fullAudioPath}" type="audio/mpeg">
-                    Ваш браузер не поддерживает аудиоплеер.
-                </audio>
-                <p style="font-size: 12px; color: #999;">📍 д. Пазял, Можгинский район</p>
-            </div>
-        `;
-    }
-
-    // Блок с транскрипцией
-    let transcriptionHTML = '';
-    if (material.transcription?.full) {
-        transcriptionHTML = `
-            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px;">
-                <h4 style="margin-bottom: 10px;">📝 Транскрипция</h4>
-                <div style="max-height: 200px; overflow-y: auto; line-height: 1.8; font-size: 14px; color: #444; white-space: pre-wrap;">
-                    ${escapeHTML(material.transcription.full)}
-                </div>
-            </div>
-        `;
-    }
-
-    // Создаём модальное окно
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay detail-modal-overlay';
-    modal.id = 'detailModal';
-
-    modal.innerHTML = `
-        <div class="detail-modal">
-            <button class="modal-close" id="closeDetailModal">&times;</button>
-
-            <div class="detail-header">
-                <span class="detail-id">Материал #${String(id).padStart(3, '0')}</span>
-                <span class="detail-date">📅 ${formattedDate}</span>
-            </div>
-
-            <h3 class="detail-topic">${material.record.topic}</h3>
-
-            <!-- Информация об информанте -->
-            <div class="detail-section">
-                <h4>👤 Информация об информанте</h4>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Возраст:</span>
-                        <span class="detail-value">${material.informant.age} лет</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Пол:</span>
-                        <span class="detail-value">${material.informant.gender === 'женский' ? '👩 Женский' : '👨 Мужской'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Образование:</span>
-                        <span class="detail-value">${material.informant.education}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Родной язык:</span>
-                        <span class="detail-value">${material.informant.nativeLanguage}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Уровень русского:</span>
-                        <span class="detail-value">${material.informant.russianLevel}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Параметры записи -->
-            <div class="detail-section">
-                <h4>📋 Параметры записи</h4>
-                <div class="detail-grid">
-                    <div class="detail-item full-width">
-                        <span class="detail-label">Дата записи:</span>
-                        <span class="detail-value">${formattedDate}</span>
-                    </div>
-                    <div class="detail-item full-width">
-                        <span class="detail-label">Место записи:</span>
-                        <span class="detail-value">${material.record.location}</span>
-                    </div>
-                    <div class="detail-item full-width">
-                        <span class="detail-label">Длительность:</span>
-                        <span class="detail-value">${material.record.duration || 'не указана'}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Медиа -->
-            <div class="detail-section">
-                <h4>📁 Медиафайлы</h4>
-                <div class="media-status">
-                    <span>🎵 Аудио: ${audioIcon}</span>
-                    <span>🎥 Видео: ${videoIcon}</span>
-                    <span>📝 Транскрипция: ${transcriptionIcon}</span>
-                </div>
-            </div>
-
-            <!-- Аудиоплеер -->
-            ${audioPlayerHTML}
-
-            <!-- Транскрипция -->
-            ${transcriptionHTML}
-
-            <!-- Метаданные (если есть) -->
-            ${material.metadata ? `
-            <div class="detail-section">
-                <h4>⚙️ Метаданные</h4>
-                <div class="detail-grid">
-                    ${material.metadata.equipment ? `
-                    <div class="detail-item full-width">
-                        <span class="detail-label">Оборудование:</span>
-                        <span class="detail-value">${material.metadata.equipment}</span>
-                    </div>` : ''}
-                    ${material.metadata.noiseLevel ? `
-                    <div class="detail-item full-width">
-                        <span class="detail-label">Уровень шума:</span>
-                        <span class="detail-value">${material.metadata.noiseLevel}</span>
-                    </div>` : ''}
-                    ${material.metadata.transcriber ? `
-                    <div class="detail-item full-width">
-                        <span class="detail-label">Расшифровщик:</span>
-                        <span class="detail-value">${material.metadata.transcriber}</span>
-                    </div>` : ''}
-                </div>
-            </div>` : ''}
-
-            <div class="detail-footer">
-                <button class="btn btn-primary" onclick="document.getElementById('detailModal').remove()">
-                    Закрыть
-                </button>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-
-    // Закрытие по клику на фон
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            modal.remove();
-        }
-    });
-
-    // Закрытие по кнопке
-    modal.querySelector('#closeDetailModal').addEventListener('click', function() {
-        modal.remove();
-    });
-
-    // Закрытие по Escape
-    const escHandler = function(e) {
-        if (e.key === 'Escape') {
-            modal.remove();
-            document.removeEventListener('keydown', escHandler);
-        }
-    };
-    document.addEventListener('keydown', escHandler);
-}
-
-// Экранирование HTML
 function escapeHTML(text) {
     if (!text) return '';
     const div = document.createElement('div');
@@ -1010,22 +772,16 @@ function escapeHTML(text) {
 }
 
 function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
     const colors = { success: '#27ae60', error: '#e74c3c', info: '#3498db' };
-    notification.style.cssText = `
-        position: fixed; bottom: 20px; right: 20px; padding: 15px 25px;
-        background: ${colors[type] || colors.info}; color: white;
-        border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        z-index: 10001; animation: slideIn 0.3s ease-out;
-    `;
+    const notification = document.createElement('div');
+    notification.style.cssText = `position:fixed;bottom:20px;right:20px;padding:15px 25px;background:${colors[type]};color:white;border-radius:8px;z-index:10001;`;
     notification.textContent = message;
     document.body.appendChild(notification);
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    setTimeout(() => notification.remove(), 3000);
 }
 
+// Глобальные функции
 window.deleteMaterial = deleteMaterial;
+window.editMaterial = editMaterial;
 window.openAudioPlayer = openAudioPlayer;
 window.closeAudioPlayer = closeAudioPlayer;

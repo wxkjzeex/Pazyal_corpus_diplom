@@ -9,6 +9,7 @@ from config import Config
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500 MB
 CORS(app)
 
 # Создаем папки для загрузок
@@ -271,6 +272,144 @@ def get_materials():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
+@app.route('/api/materials/<int:record_id>', methods=['PUT', 'POST'])
+def update_material(record_id):
+    """Обновление существующего материала"""
+    try:
+        print(f"📝 Обновление материала #{record_id}")
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Получаем данные из формы
+        age = int(request.form.get('age', 0) or 0)
+        gender = request.form.get('gender', '')
+        education = request.form.get('education', '')
+        native_language = request.form.get('nativeLanguage', 'удмуртский')
+        russian_level = request.form.get('russianLevel', '')
+        record_date = request.form.get('recordDate', datetime.now().strftime('%Y-%m-%d'))
+        location = request.form.get('location', 'д. Пазял')
+        topic = request.form.get('topic', '')
+        transcription = request.form.get('transcription', '')
+        transcriber = request.form.get('transcriber', '')
+        equipment = request.form.get('equipment', '')
+        noise_level = request.form.get('noiseLevel', 'низкий')
+        conditions = request.form.get('conditions', '')
+        comments = request.form.get('comments', '')
+
+        # Обновляем информанта (находим через record)
+        cursor.execute("""
+            UPDATE informant i
+            JOIN record r ON i.informant_id = r.informant_id
+            SET i.age = %s, i.gender = %s, i.education = %s,
+                i.native_language = %s, i.russian_level = %s
+            WHERE r.record_id = %s
+        """, (age, gender, education, native_language, russian_level, record_id))
+
+        # Обновляем запись
+        cursor.execute("""
+            UPDATE record 
+            SET record_date = %s, location = %s, topic = %s
+            WHERE record_id = %s
+        """, (record_date, location, topic, record_id))
+
+        # Обновляем или создаем транскрипцию
+        if transcription:
+            cursor.execute("SELECT transcription_id FROM transcription WHERE record_id = %s", (record_id,))
+            existing = cursor.fetchone()
+
+            if existing:
+                cursor.execute("""
+                    UPDATE transcription 
+                    SET content = %s, transcriber = %s, updated_at = CURRENT_TIMESTAMP
+                    WHERE record_id = %s
+                """, (transcription, transcriber, record_id))
+            else:
+                cursor.execute("""
+                    INSERT INTO transcription (record_id, content, transcription_date, transcriber)
+                    VALUES (%s, %s, CURDATE(), %s)
+                """, (record_id, transcription, transcriber))
+
+        # Обновляем или создаем метаданные
+        cursor.execute("SELECT meta_id FROM metadata WHERE record_id = %s", (record_id,))
+        existing_meta = cursor.fetchone()
+
+        if existing_meta:
+            cursor.execute("""
+                UPDATE metadata 
+                SET equipment = %s, noise_level = %s, recording_conditions = %s, comments = %s
+                WHERE record_id = %s
+            """, (equipment, noise_level, conditions, comments, record_id))
+        else:
+            cursor.execute("""
+                INSERT INTO metadata (record_id, equipment, noise_level, recording_conditions, comments)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (record_id, equipment, noise_level, conditions, comments))
+
+        # Обработка новых файлов (если загружены)
+        audio_file = request.files.get('audioFile')
+        video_file = request.files.get('videoFile')
+
+        if audio_file and audio_file.filename and allowed_file(audio_file.filename, 'audio'):
+            # Удаляем старый аудиофайл
+            cursor.execute("SELECT file_path FROM audio_file WHERE record_id = %s", (record_id,))
+            old_audio = cursor.fetchone()
+            if old_audio and old_audio['file_path']:
+                old_path = os.path.join(app.static_folder, old_audio['file_path'])
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+
+            # Сохраняем новый
+            filename = generate_filename(audio_file.filename)
+            full_path = os.path.join(app.static_folder, 'uploads', 'audio', filename)
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            audio_file.save(full_path)
+            audio_path = os.path.join('uploads', 'audio', filename).replace('\\', '/')
+            audio_duration = get_audio_duration(full_path)
+            audio_format = filename.rsplit('.', 1)[1].lower()
+
+            cursor.execute("DELETE FROM audio_file WHERE record_id = %s", (record_id,))
+            cursor.execute(
+                "INSERT INTO audio_file (record_id, file_path, duration, format) VALUES (%s, %s, %s, %s)",
+                (record_id, audio_path, audio_duration, audio_format)
+            )
+
+        if video_file and video_file.filename and allowed_file(video_file.filename, 'video'):
+            # Удаляем старое видео
+            cursor.execute("SELECT file_path FROM video_file WHERE record_id = %s", (record_id,))
+            old_video = cursor.fetchone()
+            if old_video and old_video['file_path']:
+                old_path = os.path.join(app.static_folder, old_video['file_path'])
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+
+            # Сохраняем новое
+            filename = generate_filename(video_file.filename)
+            full_path = os.path.join(app.static_folder, 'uploads', 'video', filename)
+            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+            video_file.save(full_path)
+            video_path = os.path.join('uploads', 'video', filename).replace('\\', '/')
+
+            cursor.execute("DELETE FROM video_file WHERE record_id = %s", (record_id,))
+            cursor.execute(
+                "INSERT INTO video_file (record_id, file_path, duration, format) VALUES (%s, %s, %s, %s)",
+                (record_id, video_path, 0, video_path.rsplit('.', 1)[1].lower())
+            )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        print(f"✅ Материал #{record_id} обновлен")
+
+        return jsonify({'success': True, 'message': 'Материал обновлен', 'record_id': record_id})
+
+    except Exception as e:
+        print(f"❌ Ошибка обновления материала: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/materials/stats', methods=['GET'])
 def get_stats():

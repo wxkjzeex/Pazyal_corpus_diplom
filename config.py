@@ -20,4 +20,4 @@ class Config:
     UPLOAD_FOLDER = os.path.join('static', 'uploads')
     MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500 MB
     ALLOWED_AUDIO_EXTENSIONS = {'mp3', 'wav', 'm4a', 'ogg', 'flac'}
-    ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
+    ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm'}

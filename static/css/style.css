@@ -3476,3 +3476,85 @@ h4 {
         gap: 10px;
     }
 }
+
+.card-footer {
+    display: flex;
+    gap: 8px;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-light);
+}
+
+.card-footer .btn-view {
+    flex: 2;
+    text-align: center;
+    padding: 10px;
+}
+
+.btn-edit {
+    flex: 0;
+    padding: 10px 12px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-edit:hover {
+    background: #ffc107;
+    color: #333;
+    border-color: #ffc107;
+}
+
+.btn-delete {
+    flex: 0;
+    padding: 10px 12px;
+    background: white;
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-delete:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+/* Видео в карточке */
+.card-video-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.card-video-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 13px;
+}
+
+/* Кнопка редактирования */
+.btn-edit {
+    padding: 10px 14px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-edit:hover {
+    background: #ffc107;
+    color: #333;
+    border-color: #ffc107;
+}
