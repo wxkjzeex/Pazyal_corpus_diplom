@@ -1,36 +1,26 @@
 # app.py
 import os
 import uuid
+import base64
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import pymysql
-from config import Config
+import requests as http_requests
 
 app = Flask(__name__)
-app.config.from_object(Config)
+
+# Конфигурация
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
+
+# CORS
 CORS(app)
 
-# Создаем папки для загрузок
-os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'audio'), exist_ok=True)
-os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'video'), exist_ok=True)
-
-# ============================================
-# ЗАГРУЗКА МОДЕЛЕЙ
-# ============================================
-
-# Whisper
-whisper_model = None
-try:
-    import whisper
-
-    print("🔄 Загрузка модели Whisper (small)...")
-    whisper_model = whisper.load_model("small")
-    print("✅ Whisper загружен")
-except ImportError:
-    print("⚠️ Whisper не установлен: pip install openai-whisper")
-except Exception as e:
-    print(f"⚠️ Ошибка загрузки Whisper: {e}")
+# Создаем папки
+os.makedirs(os.path.join('static', 'uploads', 'audio'), exist_ok=True)
+os.makedirs(os.path.join('static', 'uploads', 'video'), exist_ok=True)
 
 # Mutagen для длительности
 try:
@@ -38,109 +28,77 @@ try:
     from mutagen.wave import WAVE
     from mutagen.flac import FLAC
     from mutagen.oggvorbis import OggVorbis
-
-    MUTAGEN_AVAILABLE = True
-    print("✅ Mutagen загружен")
+    MUTAGEN_OK = True
 except ImportError:
-    MUTAGEN_AVAILABLE = False
-    MP3 = WAVE = FLAC = OggVorbis = None
-    print("⚠️ Mutagen не установлен: pip install mutagen")
+    MUTAGEN_OK = False
 
 
 def get_audio_duration(filepath):
-    """Получение длительности аудиофайла"""
-    if not MUTAGEN_AVAILABLE:
+    if not MUTAGEN_OK:
         return 0
     try:
         ext = os.path.splitext(filepath)[1].lower()
-        if ext == '.mp3':
-            return int(MP3(filepath).info.length)
-        elif ext == '.wav':
-            return int(WAVE(filepath).info.length)
-        elif ext == '.flac':
-            return int(FLAC(filepath).info.length)
-        elif ext in ['.ogg', '.opus']:
-            return int(OggVorbis(filepath).info.length)
+        if ext == '.mp3': return int(MP3(filepath).info.length)
+        elif ext == '.wav': return int(WAVE(filepath).info.length)
+        elif ext == '.flac': return int(FLAC(filepath).info.length)
+        elif ext in ['.ogg', '.opus']: return int(OggVorbis(filepath).info.length)
         return 0
-    except Exception as e:
-        print(f"⚠️ Не удалось определить длительность: {e}")
+    except:
         return 0
 
-
-# ============================================
-# ПОДКЛЮЧЕНИЕ К БАЗЕ ДАННЫХ
-# ============================================
 
 def get_db_connection():
-    """Создает и возвращает соединение с БД"""
-    try:
-        conn = pymysql.connect(
-            host=app.config['DB_HOST'],
-            user=app.config['DB_USER'],
-            password=app.config['DB_PASSWORD'],
-            database=app.config['DB_NAME'],
-            port=app.config['DB_PORT'],
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor,
-            ssl=None,
-            autocommit=False
-        )
-        return conn
-    except Exception as e:
-        print(f"❌ Ошибка подключения к БД: {e}")
-        raise
+    return pymysql.connect(
+        host=os.environ.get('DB_HOST', 'localhost'),
+        user=os.environ.get('DB_USER', 'root'),
+        password=os.environ.get('DB_PASSWORD', ''),
+        database=os.environ.get('DB_NAME', 'pazyal_corpus'),
+        port=int(os.environ.get('DB_PORT', 3306)),
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
 
 
 def allowed_file(filename, file_type):
-    """Проверка допустимого расширения файла"""
     if not filename or '.' not in filename:
         return False
     ext = filename.rsplit('.', 1)[1].lower()
     if file_type == 'audio':
-        return ext in {'mp3', 'wav', 'm4a', 'ogg', 'flac', 'opus'}
+        return ext in {'mp3', 'wav', 'm4a', 'ogg', 'flac', 'opus', 'webm'}
     return ext in {'mp4', 'avi', 'mov', 'mkv', 'webm'}
 
 
 def generate_filename(original_filename):
-    """Генерация уникального имени файла"""
     ext = original_filename.rsplit('.', 1)[1].lower()
     return f"{uuid.uuid4().hex}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
 
 
 def format_duration(seconds):
-    """Форматирование длительности"""
-    if not seconds:
-        return '00:00'
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    if hours > 0:
-        return f"{hours}:{str(minutes).zfill(2)}"
-    return f"{minutes}:{str(seconds % 60).zfill(2)}"
+    if not seconds: return '00:00'
+    h, m = divmod(seconds, 3600)
+    m, s = divmod(m, 60)
+    return f"{int(h)}:{str(int(m)).zfill(2)}" if h else f"{int(m)}:{str(int(s)).zfill(2)}"
 
 
 # ============================================
-# МАРШРУТЫ ДЛЯ СТРАНИЦ
+# СТРАНИЦЫ
 # ============================================
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
 @app.route('/about-village.html')
 def about_village():
     return render_template('about-village.html')
-
 
 @app.route('/bilingualism.html')
 def bilingualism():
     return render_template('bilingualism.html')
 
-
 @app.route('/materials.html')
 def materials():
     return render_template('materials.html')
-
 
 @app.route('/research.html')
 def research():
@@ -148,12 +106,11 @@ def research():
 
 
 # ============================================
-# API: ТРАНСКРИБАЦИЯ
+# API: ТРАНСКРИБАЦИЯ (Google Speech-to-Text)
 # ============================================
 
 @app.route('/api/transcribe', methods=['POST'])
 def transcribe_audio():
-    """Распознавание речи через Whisper (локально)"""
     try:
         if 'audioFile' not in request.files:
             return jsonify({'success': False, 'error': 'Аудиофайл не найден'}), 400
@@ -162,35 +119,71 @@ def transcribe_audio():
         if not audio_file or not audio_file.filename:
             return jsonify({'success': False, 'error': 'Файл не выбран'}), 400
 
-        print(f"📁 Транскрибация файла: {audio_file.filename}")
+        print(f"🎙️ Транскрибация: {audio_file.filename}")
 
-        if whisper_model is None:
+        api_key = os.environ.get('GOOGLE_SPEECH_API_KEY', '')
+        if not api_key:
             return jsonify({
                 'success': True,
-                'transcript': '[Демо-режим] Whisper не загружен.\nУстановите: pip install openai-whisper',
+                'transcript': '[Демо] API ключ не настроен',
                 'confidence': 0, 'fragments': 1, 'demo': True
             })
 
-        import tempfile
-        ext = os.path.splitext(audio_file.filename)[1] or '.mp3'
-        with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
-            audio_file.save(tmp.name)
-            tmp_path = tmp.name
+        # Определяем кодировку
+        filename = audio_file.filename.lower()
+        format_map = {
+            '.mp3': ('MP3', 44100), '.wav': ('LINEAR16', 44100),
+            '.flac': ('FLAC', 44100), '.ogg': ('OGG_OPUS', 48000),
+            '.webm': ('WEBM_OPUS', 48000), '.m4a': ('MP3', 44100),
+            '.opus': ('OGG_OPUS', 48000)
+        }
+        encoding, sample_rate = 'MP3', 44100
+        for ext, info in format_map.items():
+            if filename.endswith(ext):
+                encoding, sample_rate = info
+                break
 
-        result = whisper_model.transcribe(tmp_path, language="ru", task="transcribe", verbose=False)
-        os.unlink(tmp_path)
+        # Кодируем аудио
+        audio_content = audio_file.read()
+        audio_base64 = base64.b64encode(audio_content).decode('utf-8')
 
+        # Отправляем в Google
+        print(f"📤 Отправка в Google (encoding={encoding})...")
+        url = f"https://speech.googleapis.com/v1/speech:recognize?key={api_key}"
+        resp = http_requests.post(url, json={
+            "config": {
+                "encoding": encoding,
+                "sampleRateHertz": sample_rate,
+                "languageCode": "ru-RU",
+                "enableAutomaticPunctuation": True,
+                "useEnhanced": True
+            },
+            "audio": {"content": audio_base64}
+        }, timeout=120)
+
+        if resp.status_code != 200:
+            error_msg = resp.json().get('error', {}).get('message', 'Ошибка API')
+            print(f"❌ Google API error: {error_msg}")
+            return jsonify({'success': False, 'error': error_msg}), 500
+
+        result = resp.json()
         transcript_parts = []
-        for segment in result['segments']:
-            m, s = divmod(int(segment['start']), 60)
-            transcript_parts.append(f"[{m:02d}:{s:02d}] {segment['text'].strip()}")
+
+        if 'results' in result:
+            for i, res in enumerate(result['results']):
+                text = res['alternatives'][0]['transcript'].strip()
+                if text:
+                    m, s = divmod(i * 5, 60)
+                    transcript_parts.append(f"[{m:02d}:{s:02d}] {text}")
+
+        full_text = '\n'.join(transcript_parts) if transcript_parts else 'Речь не распознана'
+        print(f"✅ Распознано: {len(transcript_parts)} фрагментов")
 
         return jsonify({
             'success': True,
-            'transcript': '\n'.join(transcript_parts),
-            'confidence': 85,
+            'transcript': full_text,
+            'confidence': 90,
             'fragments': len(transcript_parts),
-            'model': 'whisper',
             'demo': False
         })
 
@@ -213,8 +206,7 @@ def get_materials():
         cursor.execute("""
             SELECT 
                 r.record_id, r.record_date, r.location, r.topic,
-                i.informant_id, i.age, i.gender, i.education,
-                i.native_language, i.russian_level,
+                i.age, i.gender, i.education, i.native_language, i.russian_level,
                 a.file_path AS audio_path, a.duration AS audio_duration,
                 v.file_path AS video_path, v.duration AS video_duration,
                 t.content AS transcription_text, t.transcriber,
@@ -233,7 +225,7 @@ def get_materials():
 
         formatted = []
         for m in materials:
-            total_dur = (m['audio_duration'] or 0) + (m['video_duration'] or 0)
+            dur = (m['audio_duration'] or 0) + (m['video_duration'] or 0)
             formatted.append({
                 'id': m['record_id'],
                 'informant': {
@@ -243,8 +235,7 @@ def get_materials():
                 },
                 'record': {
                     'date': str(m['record_date']), 'location': m['location'],
-                    'topic': m['topic'], 'duration': format_duration(total_dur),
-                    'duration_seconds': total_dur
+                    'topic': m['topic'], 'duration': format_duration(dur)
                 },
                 'transcription': {
                     'preview': (m['transcription_text'][:150] + '...') if m['transcription_text'] else '',
@@ -264,11 +255,9 @@ def get_materials():
                     'transcriber': m['transcriber'] or ''
                 }
             })
-        return jsonify({'success': True, 'data': formatted, 'total': len(formatted)})
+        return jsonify({'success': True, 'data': formatted})
     except Exception as e:
-        print(f"❌ Ошибка get_materials: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Ошибка: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -288,21 +277,19 @@ def get_stats():
             LEFT JOIN audio_file a ON r.record_id = a.record_id
             LEFT JOIN video_file v ON r.record_id = v.record_id
         """)
-        stats = cursor.fetchone()
+        s = cursor.fetchone()
         cursor.close()
         conn.close()
 
-        total_sec = stats['total_seconds'] or 0
-        hours, minutes = divmod(total_sec // 60, 60)
-
+        sec = s['total_seconds'] or 0
+        h, m = divmod(sec // 60, 60)
         return jsonify({'success': True, 'data': {
-            'totalRecords': stats['total_records'] or 0,
-            'totalInformants': stats['total_informants'] or 0,
-            'avgAge': int(stats['avg_age'] or 0),
-            'totalDuration': f"{hours}:{str(minutes).zfill(2)}"
+            'totalRecords': s['total_records'] or 0,
+            'totalInformants': s['total_informants'] or 0,
+            'avgAge': int(s['avg_age'] or 0),
+            'totalDuration': f"{h}:{str(m).zfill(2)}"
         }})
     except Exception as e:
-        print(f"❌ Ошибка get_stats: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
@@ -311,40 +298,18 @@ def delete_material(record_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
-        # Получаем пути к файлам
-        cursor.execute("SELECT file_path FROM audio_file WHERE record_id = %s", (record_id,))
-        audio_files = cursor.fetchall()
-        cursor.execute("SELECT file_path FROM video_file WHERE record_id = %s", (record_id,))
-        video_files = cursor.fetchall()
-
-        # Удаляем запись (каскад)
         cursor.execute("DELETE FROM record WHERE record_id = %s", (record_id,))
         conn.commit()
         cursor.close()
         conn.close()
-
-        # Удаляем файлы
-        for f in audio_files + video_files:
-            if f and f['file_path']:
-                full_path = os.path.join(app.static_folder, f['file_path'])
-                if os.path.exists(full_path):
-                    os.remove(full_path)
-
-        return jsonify({'success': True, 'message': 'Материал удален'})
+        return jsonify({'success': True})
     except Exception as e:
-        print(f"❌ Ошибка удаления: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/api/materials', methods=['POST'])
 def add_material():
     try:
-        print("=" * 50)
-        print("📤 POST-запрос на добавление материала")
-        print("Form:", dict(request.form))
-        print("Files:", list(request.files.keys()))
-
         audio_file = request.files.get('audioFile')
         video_file = request.files.get('videoFile')
 
@@ -357,27 +322,24 @@ def add_material():
         # Сохраняем аудио
         if audio_file and audio_file.filename and allowed_file(audio_file.filename, 'audio'):
             filename = generate_filename(audio_file.filename)
-            full_path = os.path.join(app.static_folder, 'uploads', 'audio', filename)
+            full_path = os.path.join('static', 'uploads', 'audio', filename)
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
             audio_file.save(full_path)
             audio_path = os.path.join('uploads', 'audio', filename).replace('\\', '/')
             audio_format = filename.rsplit('.', 1)[1].lower()
             audio_duration = get_audio_duration(full_path)
-            print(f"✅ Аудио: {audio_path} ({audio_duration}с)")
 
         # Сохраняем видео
         if video_file and video_file.filename and allowed_file(video_file.filename, 'video'):
             filename = generate_filename(video_file.filename)
-            full_path = os.path.join(app.static_folder, 'uploads', 'video', filename)
+            full_path = os.path.join('static', 'uploads', 'video', filename)
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
             video_file.save(full_path)
             video_path = os.path.join('uploads', 'video', filename).replace('\\', '/')
-            print(f"✅ Видео: {video_path}")
 
         # Сохраняем в БД
         conn = get_db_connection()
         cursor = conn.cursor()
-
         cursor.callproc('sp_add_full_record', (
             int(request.form.get('age', 0) or 0),
             request.form.get('gender', ''),
@@ -393,15 +355,12 @@ def add_material():
             request.form.get('equipment', ''),
             request.form.get('conditions', ''),
             request.form.get('noiseLevel', 'низкий'),
-            '',
-            request.form.get('comments', '')
+            '', request.form.get('comments', '')
         ))
 
-        # Если есть видео — добавляем отдельно
         if video_path:
             cursor.execute(
-                "INSERT INTO video_file (record_id, file_path, duration, format) "
-                "VALUES (LAST_INSERT_ID(), %s, %s, %s)",
+                "INSERT INTO video_file (record_id, file_path, duration, format) VALUES (LAST_INSERT_ID(), %s, %s, %s)",
                 (video_path, video_duration, video_path.rsplit('.', 1)[1].lower())
             )
 
@@ -412,9 +371,7 @@ def add_material():
         cursor.close()
         conn.close()
 
-        print(f"✅ Материал добавлен, ID: {new_id}")
-        return jsonify({'success': True, 'message': 'Материал добавлен', 'record_id': new_id})
-
+        return jsonify({'success': True, 'record_id': new_id})
     except Exception as e:
         print(f"❌ Ошибка: {e}")
         import traceback
@@ -422,9 +379,6 @@ def add_material():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ============================================
-# ЗАПУСК
-# ============================================
-
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
