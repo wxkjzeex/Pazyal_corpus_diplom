@@ -624,6 +624,9 @@ function createMaterialCard(material) {
     if (material.media?.hasVideo) mediaIcons.push('🎥');
     if (material.transcription?.full) mediaIcons.push('📝');
 
+    // Форматируем длительность
+    const duration = material.record.duration || '00:00';
+
     let audioSection = '';
     if (material.media?.hasAudio) {
         const audioPath = material.media.audioPath || '';
@@ -633,9 +636,20 @@ function createMaterialCard(material) {
 
         audioSection = `
             <div class="card-audio-section">
-                <div class="card-audio-label"><span>🎵</span><span>${audioFileName.substring(0, 30)}${audioFileName.length > 30 ? '...' : ''}</span></div>
-                <button class="play-audio-btn" onclick="openAudioPlayer('${audioPath}', '${safeTopic}', '${safeFileName}')">▶ Прослушать запись</button>
+                <div class="card-audio-label">
+                    <span>🎵</span>
+                    <span>${audioFileName.length > 30 ? audioFileName.substring(0, 30) + '...' : audioFileName}</span>
+                </div>
+                <button class="play-audio-btn" onclick="openAudioPlayer('${audioPath}', '${safeTopic}', '${safeFileName}')">
+                    ▶ Прослушать запись
+                </button>
             </div>`;
+    }
+
+    // Информация о видео
+    let videoBadge = '';
+    if (material.media?.hasVideo) {
+        videoBadge = '<span class="badge-media badge-video">🎥 Видео</span>';
     }
 
     return `
@@ -645,7 +659,9 @@ function createMaterialCard(material) {
                     <span class="card-id">#${String(material.id).padStart(3, '0')}</span>
                     <span class="card-date">${formatDate(material.record.date)}</span>
                 </div>
-                <div class="card-badges">${mediaIcons.map(icon => `<span class="badge-media">${icon}</span>`).join('')}</div>
+                <div class="card-badges">
+                    ${mediaIcons.map(icon => `<span class="badge-media">${icon}</span>`).join('')}
+                </div>
             </div>
             <div class="card-body">
                 <h4 class="card-topic">${material.record.topic}</h4>
@@ -655,7 +671,11 @@ function createMaterialCard(material) {
                     <span class="informant-badge">🗣️ ${material.informant.russianLevel}</span>
                 </div>
                 <div class="transcription-preview"><p>${material.transcription.preview || 'Транскрипция отсутствует'}</p></div>
-                <div class="record-meta"><span>📍 ${material.record.location}</span><span>⏱️ ${material.record.duration || '00:00'}</span></div>
+                <div class="record-meta">
+                    <span>📍 ${material.record.location}</span>
+                    <span>⏱️ ${duration}</span>
+                    ${videoBadge}
+                </div>
                 ${audioSection}
             </div>
             <div class="card-footer">
